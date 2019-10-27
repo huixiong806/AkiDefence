@@ -6,30 +6,30 @@
 #include<Windows.h>
 #include<map>
 using namespace std;
+//仅限二人版
 struct State
 {
-	Player minoriko;
-	Player marisa;
+	Player player[2];
 	int roundLeft;
 	bool operator <(const State& rhs)const 
 	{
 		if (roundLeft < rhs.roundLeft)return true;
 		if (roundLeft > rhs.roundLeft)return false;
-		if (minoriko.hp < rhs.minoriko.hp)return true;
-		if (minoriko.hp > rhs.minoriko.hp)return false;
-		if (marisa.hp < rhs.marisa.hp)return true;
-		if (marisa.hp > rhs.marisa.hp)return false;
-		if (minoriko.position.x < rhs.minoriko.position.x)return true;
-		if (minoriko.position.x > rhs.minoriko.position.x)return false;
-		if (marisa.position.x < rhs.marisa.position.x)return true;
-		if (marisa.position.x > rhs.marisa.position.x)return false;
-		if (minoriko.position.y < rhs.minoriko.position.y)return true;
-		if (minoriko.position.y > rhs.minoriko.position.y)return false;
-		if (marisa.position.y < rhs.marisa.position.y)return true;
-		if (marisa.position.y > rhs.marisa.position.y)return false;
-		if (minoriko.have < rhs.minoriko.have)return true;
-		if (minoriko.have > rhs.minoriko.have)return false;
-		return marisa.have < rhs.marisa.have;
+		if (player[MINORIKO].hp < rhs.player[MINORIKO].hp)return true;
+		if (player[MINORIKO].hp > rhs.player[MINORIKO].hp)return false;
+		if (player[MARISA].hp < rhs.player[MARISA].hp)return true;
+		if (player[MARISA].hp > rhs.player[MARISA].hp)return false;
+		if (player[MINORIKO].position.x < rhs.player[MINORIKO].position.x)return true;
+		if (player[MINORIKO].position.x > rhs.player[MINORIKO].position.x)return false;
+		if (player[MARISA].position.x < rhs.player[MARISA].position.x)return true;
+		if (player[MARISA].position.x > rhs.player[MARISA].position.x)return false;
+		if (player[MINORIKO].position.y < rhs.player[MINORIKO].position.y)return true;
+		if (player[MINORIKO].position.y > rhs.player[MINORIKO].position.y)return false;
+		if (player[MARISA].position.y < rhs.player[MARISA].position.y)return true;
+		if (player[MARISA].position.y > rhs.player[MARISA].position.y)return false;
+		if (player[MINORIKO].have < rhs.player[MINORIKO].have)return true;
+		if (player[MINORIKO].have > rhs.player[MINORIKO].have)return false;
+		return player[MARISA].have < rhs.player[MARISA].have;
 	}
 };
 class Game;
@@ -40,11 +40,9 @@ private:
 	static double a[21][21];
 	static map<State, double> avgScore;
 	GameInfo startState;
-	void printInfo(GameInfo& info);
 	void printMovements(vector<Movement>& movements); 
 	double solve(State state);
-	vector<Movement> getMovementForMarisa(const State& state);
-	vector<Movement> getMovementForMinoriko(const State& state);
+	vector<Movement> getEffectiveMovement(const State& state,int side);
 	void pivot(int l, int e, int row, int col);
 	friend class game;
 public:

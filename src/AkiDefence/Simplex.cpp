@@ -4,95 +4,11 @@
 int SimplexAI::id[21 << 1];
 double SimplexAI::a[21][21];
 map<State, double> SimplexAI::avgScore;
-
-vector<Movement> SimplexAI::getMovementForMarisa(const State& state)
+std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side)
 {
-	vector<Movement> res;
-	Movement movement;
-	for (int i = 0; i <= 4; ++i)
-	{
-		if (i == 4)
-		{
-			res.push_back(Movement::createMovementStay());
-			break;
-		}
-		movement.direction = i;
-		Vec2i newPos = state.marisa.position + cns::delta[i];
-		if (cns::outofRange(newPos, startState.map.size()))
-			continue;
-		if (startState.map[newPos.x][newPos.y].type == GridType::Wall)
-			continue;
-		if (startState.map[newPos.x][newPos.y].type == GridType::Pile)
-		{
-			if (!state.marisa.have)
-			{
-				movement.type = MovementType::Get;
-				res.push_back(movement);
-			}
-			continue;
-		}
-		if (startState.map[newPos.x][newPos.y].type == GridType::Shrine)
-		{
-			if (state.marisa.have)
-			{
-				movement.type = MovementType::Put;
-				res.push_back(movement);
-			}
-			continue;
-		}
-		//判断启动的机关
-		int64_t colorUp = 0;
-		if (state.minoriko.hp > 0)
-		{
-			if (startState.map[state.minoriko.position.x][state.minoriko.position.y].type == GridType::Trigger)
-				colorUp |= startState.map[state.minoriko.position.x][state.minoriko.position.y].tag;
-		}
-		if (startState.map[state.marisa.position.x][state.marisa.position.y].type == GridType::Trigger)
-			colorUp |= startState.map[state.marisa.position.x][state.marisa.position.y].tag;
-		if (startState.map[newPos.x][newPos.y].type == GridType::MoveableWall && (startState.map[newPos.x][newPos.y].tag & colorUp))
-			continue;
-		movement.type = MovementType::Move;
-		res.push_back(movement);
-	}
-	if (state.marisa.have)
-	{
-		//吃红薯
-		if (state.marisa.hp < startState.marisaMaxHp)
-		{
-			movement.type = MovementType::Eat;
-			res.push_back(movement);
-		}
-		//投掷红薯
-		for (int i = 0; i <= 4; ++i)
-		{
-			Vec2i newPos = state.minoriko.position + cns::delta[i];
-			bool ok = false;
-			for (int j = 0; j < 4; ++j)
-			{
-				for (int k = 1; k <= 2; ++k)
-				{
-					Vec2i tarPos = state.marisa.position + cns::delta[j] * k;
-					if (newPos == tarPos)
-					{
-						ok = true;
-						movement.type = MovementType::Throw;
-						movement.direction = j;
-						movement.distance = k;
-						res.push_back(movement);
-						break;
-					}
-				}
-				if (ok)break;
-			}
-		}
-	}
-	return res;
-}
-vector<Movement> SimplexAI::getMovementForMinoriko(const State& state)
-{
-	vector<Movement> res;
+	std::vector<Movement> res;
 	Movement movement = Movement::createMovementStay();
-	if (state.minoriko.hp <= 0)
+	if (state.player[side].hp <= 0)
 	{
 		res.push_back(movement);
 		return res;
@@ -102,17 +18,17 @@ vector<Movement> SimplexAI::getMovementForMinoriko(const State& state)
 		if (i == 4)
 		{
 			res.push_back(Movement::createMovementStay());
-			continue;
+			break;
 		}
 		movement.direction = i;
-		Vec2i newPos = state.minoriko.position + cns::delta[i];
+		Vec2i newPos = state.player[side].position + cns::delta[i];
 		if (cns::outofRange(newPos, startState.map.size()))
 			continue;
 		if (startState.map[newPos.x][newPos.y].type == GridType::Wall)
 			continue;
 		if (startState.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
-			if (!state.minoriko.have)
+			if (!state.player[side].have)
 			{
 				movement.type = MovementType::Get;
 				res.push_back(movement);
@@ -121,7 +37,7 @@ vector<Movement> SimplexAI::getMovementForMinoriko(const State& state)
 		}
 		if (startState.map[newPos.x][newPos.y].type == GridType::Shrine)
 		{
-			if (state.minoriko.have)
+			if (state.player[side].have)
 			{
 				movement.type = MovementType::Put;
 				res.push_back(movement);
@@ -130,23 +46,23 @@ vector<Movement> SimplexAI::getMovementForMinoriko(const State& state)
 		}
 		//判断启动的机关
 		int64_t colorUp = 0;
-		if (state.minoriko.hp > 0)
+		for (int p = 0; p < 2; ++p)
 		{
-			if (startState.map[state.minoriko.position.x][state.minoriko.position.y].type == GridType::Trigger)
-				colorUp |= startState.map[state.minoriko.position.x][state.minoriko.position.y].tag;
+			if (state.player[p].hp > 0)
+			{
+				if (startState.map[state.player[p].position.x][state.player[p].position.y].type == GridType::Trigger)
+					colorUp |= startState.map[state.player[p].position.x][state.player[p].position.y].tag;
+			}
 		}
-		if (startState.map[state.marisa.position.x][state.marisa.position.y].type == GridType::Trigger)
-			colorUp |= startState.map[state.marisa.position.x][state.marisa.position.y].tag;
 		if (startState.map[newPos.x][newPos.y].type == GridType::MoveableWall && (startState.map[newPos.x][newPos.y].tag & colorUp))
 			continue;
 		movement.type = MovementType::Move;
-		assert(movement.direction >= 0 && movement.direction < 4);
 		res.push_back(movement);
 	}
-	if (state.minoriko.have)
+	if (state.player[side].have)
 	{
 		//吃红薯
-		if (state.minoriko.hp < startState.minorikoMaxHp)
+		if (state.player[side].hp < startState.maxHp[side])
 		{
 			movement.type = MovementType::Eat;
 			res.push_back(movement);
@@ -154,13 +70,13 @@ vector<Movement> SimplexAI::getMovementForMinoriko(const State& state)
 		//投掷红薯
 		for (int i = 0; i <= 4; ++i)
 		{
-			Vec2i newPos = state.marisa.position + cns::delta[i];
+			Vec2i newPos = state.player[side ^ 1].position + cns::delta[i];
 			bool ok = false;
 			for (int j = 0; j < 4; ++j)
 			{
 				for (int k = 1; k <= 2; ++k)
 				{
-					Vec2i tarPos = state.minoriko.position + cns::delta[j] * k;
+					Vec2i tarPos = state.player[side].position + cns::delta[j] * k;
 					if (newPos == tarPos)
 					{
 						ok = true;
@@ -196,12 +112,12 @@ double SimplexAI::solve(State state)
 	static int c = 0;
 	c++;
 	if (c % 100000 == 0)cout << c << endl;
-	if (state.marisa.hp <= 0 || state.roundLeft <= 0)
+	if (state.player[MARISA].hp <= 0 || state.roundLeft <= 0)
 		return avgScore[state] = 1.0+((double)rand() / 100000000000000.0)- (16383.0 / 100000000000000.0);
 	double p[10][10];
 	memset(p, 0, sizeof(p));
-	vector<Movement>MovementMarisa = getMovementForMarisa(state);
-	vector<Movement>MovementMinoriko = getMovementForMinoriko(state);
+	vector<Movement>MovementMarisa = getEffectiveMovement(state,MARISA);
+	vector<Movement>MovementMinoriko = getEffectiveMovement(state,MINORIKO);
 	int szmarisa = MovementMarisa.size(), szminoriko = MovementMinoriko.size();
 	int row = szmarisa, col = szminoriko;
 	//构造收益矩阵
@@ -211,15 +127,15 @@ double SimplexAI::solve(State state)
 			Game game;
 			game.newGame(startState);
 			game.score = 0;
-			game.marisa = state.marisa;
-			game.minoriko = state.minoriko;
+			game.setPlayer(state.player[MARISA],MARISA);
+			game.setPlayer(state.player[MINORIKO], MINORIKO);
 			game.round = game.roundLimit - state.roundLeft;
-			game.setMovementForMarisa(MovementMarisa[i]);
-			game.setMovementForMinoriko(MovementMinoriko[j]);
+			game.setMovement(MovementMarisa[i],MARISA);
+			game.setMovement(MovementMinoriko[j],MINORIKO);
 			game.roundFinish();
 			State nextState;
-			nextState.marisa = game.marisa;
-			nextState.minoriko = game.minoriko;
+			nextState.player[MARISA] = game.getPlayerConst(MARISA);
+			nextState.player[MINORIKO] = game.getPlayerConst(MINORIKO);
 			nextState.roundLeft = game.roundLimit - game.round;
 			p[i][j] = solve(nextState) + game.score;
 		}
@@ -314,49 +230,10 @@ void SimplexAI::init(GameInfo info)
 {
 	startState = info;
 	State sta;
-	sta.marisa = info.marisa;
-	sta.minoriko = info.minoriko;
+	sta.player[MARISA] = info.player[MARISA];
+	sta.player[MINORIKO] = info.player[MINORIKO];
 	sta.roundLeft = info.roundLimit - info.round;
 	solve(sta);
-}
-const char gridStr[10] = { ' ','*','S','#','.','@','_' };
-void SimplexAI::printInfo(GameInfo& info)
-{
-	cout << (info.who ? "雾雨魔理沙" : "秋穰子") << endl;
-	cout << "第" << info.round << "秒，还剩下" << info.roundLimit - info.round << "秒" << endl;
-	cout << "已搬运:" << info.score << endl;
-	cout << "HP: 穰子" << info.minoriko.hp << "/" << info.minorikoMaxHp << " 魔理沙" << info.marisa.hp << "/" << info.marisaMaxHp << endl;
-	int64_t colorUp = 0;
-	if (info.minoriko.hp>0)
-		if (info.map[info.minoriko.position.x][info.minoriko.position.y].type == GridType::Trigger)
-			colorUp |= info.map[info.minoriko.position.x][info.minoriko.position.y].tag;
-	if (info.map[info.marisa.position.x][info.marisa.position.y].type == GridType::Trigger)
-		colorUp |= info.map[info.marisa.position.x][info.marisa.position.y].tag;
-	for (int i = 0; i < info.map.size().x; ++i)
-	{
-		for (int j = 0; j < info.map.size().y; ++j)
-		{
-			if (i == info.marisa.position.x&&j == info.marisa.position.y)
-			{
-				cout << (info.marisa.have ? 'M' : 'm');
-			}
-			else if (i == info.minoriko.position.x&&j == info.minoriko.position.y)
-			{
-				cout << (info.minoriko.have ? 'A' : 'a');
-
-			}
-			else
-			{
-				char out = gridStr[(int)info.map[i][j].type];
-				if (info.map[i][j].type == GridType::Trap && (info.map[i][j].tag | colorUp))
-					out = '^';
-				if (info.map[i][j].type == GridType::MoveableWall && (info.map[i][j].tag | colorUp))
-					out = '#';
-				cout << out;
-			}
-		}
-		cout << endl;
-	}
 }
 void SimplexAI::printMovements(vector<Movement>& movements)
 {
@@ -372,16 +249,17 @@ std::ostream& operator<<(std::ostream& os, Movement m)
 Movement SimplexAI::generateMovement(GameInfo info)
 {
 	State state;
-	state.marisa = info.marisa;
-	state.minoriko = info.minoriko;
+	state.player[MARISA] = info.player[MARISA];
+	state.player[MINORIKO] = info.player[MINORIKO];
 	state.roundLeft = info.roundLimit - info.round;
 	//printInfo(info);
 	cout << (info.who ? "雾雨魔理沙" : "秋穰子") << endl;
-	printf("最优解平均得分:%.4lf\n", info.score+avgScore[state]-1.0);
+	cout << "最优解平均得分:" << info.score + avgScore[state] - 1.0 << endl;
+	//printf("最优解平均得分:%.4lf\n", info.score+avgScore[state]-1.0);
 	double p[10][10];
 	memset(p, 0, sizeof(p));
-	vector<Movement>MovementMarisa = getMovementForMarisa(state);
-	vector<Movement>MovementMinoriko = getMovementForMinoriko(state);
+	vector<Movement>MovementMarisa = getEffectiveMovement(state, MARISA);
+	vector<Movement>MovementMinoriko = getEffectiveMovement(state, MINORIKO);
 	int szmarisa = MovementMarisa.size(), szminoriko = MovementMinoriko.size();
 	int row = szmarisa, col = szminoriko;
 	if (info.who == 0)
@@ -393,18 +271,18 @@ Movement SimplexAI::generateMovement(GameInfo info)
 			Game game;
 			game.newGame(startState);
 			game.score = 0;
-			game.marisa = state.marisa;
-			game.minoriko = state.minoriko;
+			game.setPlayer(state.player[MARISA], MARISA);
+			game.setPlayer(state.player[MINORIKO], MINORIKO);
 			game.round = game.roundLimit - state.roundLeft;
-			game.setMovementForMarisa(MovementMarisa[info.who?i:j]);
-			game.setMovementForMinoriko(MovementMinoriko[info.who?j:i]);
+			game.setMovement(MovementMarisa[info.who?i:j], MARISA);
+			game.setMovement(MovementMinoriko[info.who?j:i], MINORIKO);
 			game.roundFinish();
 			State nextState;
-			nextState.marisa = game.marisa;
-			nextState.minoriko = game.minoriko;
+			nextState.player[MARISA] = game.getPlayerConst(MARISA);
+			nextState.player[MINORIKO] = game.getPlayerConst(MINORIKO);
 			nextState.roundLeft = game.roundLimit - game.round;
 			p[i][j] = avgScore[nextState] + game.score;
-			if (!info.who)p[i][j] = 9999.0-p[i][j];
+			if (!info.who)p[i][j] = 9999.0 - p[i][j];
 		}
 	/*
 	for (int i = 0; i < szmarisa; ++i)
@@ -477,7 +355,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 		{
 			if ((int)round(res[i] * ep*100.0) > 0)
 			{
-				//cout<<printMovement(MovementMarisa[i - 1])<<" 概率:"<< (int)round(res[i] * ep * 100.0)<<endl;
+				cout<<printMovement(MovementMarisa[i - 1])<<" 概率:"<< (int)round(res[i] * ep * 100.0)<<endl;
 			}
 			if (!ok&&randNum < res[i] * ep)
 			{
@@ -493,7 +371,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 		{
 			if ((int)round(res[i] * ep*100.0) > 0)
 			{
-				//cout << printMovement(MovementMinoriko[i - 1]) << " 概率:" << (int)round(res[i] * ep * 100.0) << endl;
+				cout << printMovement(MovementMinoriko[i - 1]) << " 概率:" << (int)round(res[i] * ep * 100.0) << endl;
 			}
 			if (!ok&&randNum < res[i] * ep)
 			{

@@ -4,8 +4,8 @@
 GameInfo Game::getInfo(int who)
 {
 	GameInfo res;
-	res.minoriko = minoriko;
-	res.marisa = marisa;
+	res.player[MINORIKO] = player[MINORIKO];
+	res.player[MARISA] = player[MARISA];
 	res.round = round;
 	res.roundLimit = roundLimit;
 	res.map = map;
@@ -15,8 +15,8 @@ GameInfo Game::getInfo(int who)
 	res.attackDamage = attackDamage;
 	res.trapDamage = trapDamage;
 	res.recoverHp = recoverHp;
-	res.marisaMaxHp=marisaMaxHp;
-	res.minorikoMaxHp= minorikoMaxHp;
+	res.maxHp[MARISA] =maxHp[MARISA];
+	res.maxHp[MINORIKO] = maxHp[MINORIKO];
 	return res;
 }
 const char gridStr[10] = { ' ','*','S','#','.','@','_' };
@@ -27,24 +27,24 @@ void Game::printInfo()
 	cout << "<时间> 第" << info.round << "秒，还剩下" << info.roundLimit - info.round << "秒" << endl;
 	cout << "<得分> 已搬运:" << info.score << endl;
 	cout << "<参数> 击中:" << -info.attackDamage << " 碰撞:"<<-info.collisionDamage<<" 机关:"<<-info.trapDamage<<" 回复:"<<info.recoverHp<<endl;
-	cout << "<HP>   穰子" << info.minoriko.hp << "/" << info.minorikoMaxHp << " 魔理沙" << info.marisa.hp << "/" << info.marisaMaxHp << endl;
+	cout << "<HP>   穰子" << info.player[MINORIKO].hp << "/" << info.maxHp[MINORIKO] << " 魔理沙" << info.player[MARISA].hp << "/" << info.maxHp[MARISA] << endl;
 	int64_t colorUp = 0;
-	if (info.minoriko.hp>0)
-		if (info.map[info.minoriko.position.x][info.minoriko.position.y].type == GridType::Trigger)
-			colorUp |= info.map[info.minoriko.position.x][info.minoriko.position.y].tag;
-	if (info.map[info.marisa.position.x][info.marisa.position.y].type == GridType::Trigger)
-		colorUp |= info.map[info.marisa.position.x][info.marisa.position.y].tag;
+	if (info.player[MINORIKO].hp>0)
+		if (info.map[info.player[MINORIKO].position.x][info.player[MINORIKO].position.y].type == GridType::Trigger)
+			colorUp |= info.map[info.player[MINORIKO].position.x][info.player[MINORIKO].position.y].tag;
+	if (info.map[info.player[MARISA].position.x][info.player[MARISA].position.y].type == GridType::Trigger)
+		colorUp |= info.map[info.player[MARISA].position.x][info.player[MARISA].position.y].tag;
 	for (int i = 0; i < info.map.size().x; ++i)
 	{
 		for (int j = 0; j < info.map.size().y; ++j)
 		{
-			if (i == info.marisa.position.x&&j == info.marisa.position.y)
+			if (i == info.player[MARISA].position.x&&j == info.player[MARISA].position.y)
 			{
-				cout << (info.marisa.have ? 'M' : 'm');
+				cout << (info.player[MARISA].have ? 'M' : 'm');
 			}
-			else if (i == info.minoriko.position.x&&j == info.minoriko.position.y)
+			else if (i == info.player[MINORIKO].position.x&&j == info.player[MINORIKO].position.y)
 			{
-				cout << (info.minoriko.have ? 'A' : 'a');
+				cout << (info.player[MINORIKO].have ? 'A' : 'a');
 
 			}
 			else
@@ -60,58 +60,59 @@ void Game::printInfo()
 		cout << endl;
 	}
 }
-void Game::setMovementForMinoriko(const Movement& movement)
+void Game::setMovement(const Movement& movement,int side)
 {
-	movementMinoriko = movement;
+	this->movement[side] = movement;
 }
-void Game::setMovementForMarisa(const Movement& movement)
+void Game::setPlayer(const Player& player, int side)
 {
-	movementMarisa = movement;
+	this->player[side] = player;
+}
+const Player& Game::getPlayerConst(int side)
+{
+	return this->player[side];
 }
 void Game::roundFinish()
 {
-	if (minoriko.hp <= 0)
+	if (player[MINORIKO].hp <= 0)
 	{
-		movementMinoriko = Movement::createMovementStay();
-		minoriko.position = Vec2i(-1, -1);
+		movement[MINORIKO] = Movement::createMovementStay();
+		player[MINORIKO].position = Vec2i(-1, -1);
 	}
 	//吃红薯补血
-	if (movementMinoriko.type == MovementType::Eat)
+	for (int p=0;p<playerCount;++p)
 	{
-		minoriko.hp += recoverHp;
-		if (minoriko.hp > minorikoMaxHp)
-			minoriko.hp = minorikoMaxHp;
-		minoriko.have = false;
-	}
-	if (movementMarisa.type == MovementType::Eat)
-	{
-		marisa.hp += recoverHp;
-		if (marisa.hp > marisaMaxHp)
-			marisa.hp = marisaMaxHp;
-		marisa.have = false;
+		if (movement[p].type == MovementType::Eat)
+		{
+			player[p].hp += recoverHp;
+			if (player[p].hp > maxHp[p])
+				player[p].hp = maxHp[p];
+			player[p].have = false;
+		}
 	}
 	//判断启动的机关
 	int64_t colorUp = 0;
-	if (minoriko.hp > 0)
+	for (int p = 0; p < playerCount; ++p)
 	{
-		if (map[minoriko.position.x][minoriko.position.y].type == GridType::Trigger)
-			colorUp |= map[minoriko.position.x][minoriko.position.y].tag;
+		if (player[p].hp > 0)
+		{
+			if (map[player[p].position.x][player[p].position.y].type == GridType::Trigger)
+				colorUp |= map[player[p].position.x][player[p].position.y].tag;
+		}
 	}
-	if (map[marisa.position.x][marisa.position.y].type == GridType::Trigger)
-		colorUp |= map[marisa.position.x][marisa.position.y].tag;
 	//试图移动
-	Vec2i newPosMinoriko= minoriko.position,newPosMarisa=marisa.position;
-	if (minoriko.hp > 0&&movementMinoriko.type == MovementType::Move)
-		newPosMinoriko = minoriko.position + cns::delta[movementMinoriko.direction];
-	if (movementMarisa.type == MovementType::Move)
-		newPosMarisa = marisa.position + cns::delta[movementMarisa.direction];
+	Vec2i newPosMinoriko= player[MINORIKO].position,newPosMarisa= player[MARISA].position;
+	if (player[MINORIKO].hp > 0&& movement[MINORIKO].type == MovementType::Move)
+		newPosMinoriko = player[MINORIKO].position + cns::delta[movement[MINORIKO].direction];
+	if (movement[MARISA].type == MovementType::Move)
+		newPosMarisa = player[MARISA].position + cns::delta[movement[MARISA].direction];
 	//判断二人碰撞移动失败
-	if ((newPosMarisa == minoriko.position&&newPosMinoriko == marisa.position)|| newPosMarisa== newPosMinoriko)
+	if ((newPosMarisa == player[MINORIKO].position&&newPosMinoriko == player[MARISA].position)|| newPosMarisa== newPosMinoriko)
 	{
-		marisa.hp -= collisionDamage;
-		minoriko.hp -= collisionDamage;
-		newPosMarisa = marisa.position;
-		newPosMinoriko = minoriko.position;
+		player[MARISA].hp -= collisionDamage;
+		player[MINORIKO].hp -= collisionDamage;
+		newPosMarisa = player[MARISA].position;
+		newPosMinoriko = player[MINORIKO].position;
 	}
 	//判断越界和撞墙移动失败
 	bool moveFaildMarisa = false;
@@ -126,7 +127,7 @@ void Game::roundFinish()
 	if (!moveFaildMarisa&&map[newPosMarisa.x][newPosMarisa.y].type == GridType::MoveableWall&&(map[newPosMarisa.x][newPosMarisa.y].tag& colorUp))
 		moveFaildMarisa = true;
 	if(moveFaildMarisa)
-		newPosMarisa = marisa.position;
+		newPosMarisa = player[MARISA].position;
 	bool moveFaildMinoriko= false;
 	if (cns::outofRange(newPosMinoriko, map.size()))
 		moveFaildMinoriko = true;
@@ -139,102 +140,81 @@ void Game::roundFinish()
 	if (!moveFaildMinoriko&&map[newPosMinoriko.x][newPosMinoriko.y].type == GridType::MoveableWall && (map[newPosMinoriko.x][newPosMinoriko.y].tag & colorUp))
 		moveFaildMinoriko = true;
 	if (moveFaildMinoriko)
-		newPosMinoriko = minoriko.position;
-	minoriko.position = newPosMinoriko;
-	marisa.position = newPosMarisa;
+		newPosMinoriko = player[MINORIKO].position;
+	player[MINORIKO].position = newPosMinoriko;
+	player[MARISA].position = newPosMarisa;
 	//投掷红薯扣血
-	if (movementMinoriko.type == MovementType::Throw&&movementMinoriko.distance > 0 && movementMinoriko.distance <=2&&minoriko.have)
+	if (movement[MINORIKO].type == MovementType::Throw&& movement[MINORIKO].distance > 0 && movement[MINORIKO].distance <=2&& player[MINORIKO].have)
 	{
-		Vec2i pos = minoriko.position+cns::delta[movementMinoriko.direction] * movementMinoriko.distance;
-		if (marisa.position == pos)
-			marisa.hp -= attackDamage;
-		minoriko.have = false;
+		Vec2i pos = player[MINORIKO].position+cns::delta[movement[MINORIKO].direction] * movement[MINORIKO].distance;
+		if (player[MARISA].position == pos)
+			player[MARISA].hp -= attackDamage;
+		player[MINORIKO].have = false;
 	}
-	if (movementMarisa.type == MovementType::Throw&&movementMarisa.distance > 0 && movementMarisa.distance <= 2 && marisa.have)
+	if (movement[MARISA].type == MovementType::Throw&& movement[MARISA].distance > 0 && movement[MARISA].distance <= 2 && player[MARISA].have)
 	{
-		Vec2i pos = marisa.position+cns::delta[movementMarisa.direction] * movementMarisa.distance;
-		if (minoriko.position == pos)
-			minoriko.hp -= attackDamage;
-		marisa.have = false;
+		Vec2i pos = player[MARISA].position+cns::delta[movement[MARISA].direction] * movement[MARISA].distance;
+		if (player[MINORIKO].position == pos)
+			player[MINORIKO].hp -= attackDamage;
+		player[MARISA].have = false;
 	}
 	//红薯的放下和拿起
-	if (movementMinoriko.type == MovementType::Get&&minoriko.hp>0)
+	for (int p = 0; p < playerCount;++p)
 	{
-		Vec2i pos = minoriko.position+cns::delta[movementMinoriko.direction];
-		if (!cns::outofRange(pos, map.size()))
+		if (player[p].hp <= 0)continue;
+		if (movement[p].type == MovementType::Get)
 		{
-			if (map[pos.x][pos.y].type == GridType::Pile&&(map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
+			Vec2i pos = player[p].position + cns::delta[movement[p].direction];
+			if (!cns::outofRange(pos, map.size()))
 			{
-				if (map[pos.x][pos.y].tag != -1)
-					map[pos.x][pos.y].tag -= minoriko.have ? 0 : 1;
-				minoriko.have = true;
+				if (map[pos.x][pos.y].type == GridType::Pile && (map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
+				{
+					if (map[pos.x][pos.y].tag != -1)
+						map[pos.x][pos.y].tag -= player[p].have ? 0 : 1;
+					player[p].have = true;
 
+				}
 			}
 		}
-	}
-	if (movementMarisa.type == MovementType::Get&&marisa.hp>0)
-	{
-		Vec2i pos = marisa.position + cns::delta[movementMarisa.direction];
-		if (!cns::outofRange(pos, map.size()))
+		if (movement[p].type == MovementType::Put && player[p].have)
 		{
-			if (map[pos.x][pos.y].type == GridType::Pile&&(map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
+			Vec2i pos = player[p].position + cns::delta[movement[p].direction];
+			if (!cns::outofRange(pos, map.size()))
 			{
-				if (map[pos.x][pos.y].tag != -1)
-					map[pos.x][pos.y].tag -= marisa.have ? 0 : 1;
-				marisa.have = true;
-			}
-		}
-	}
-	if (movementMinoriko.type == MovementType::Put&&minoriko.have&&minoriko.hp>0)
-	{
-		Vec2i pos = minoriko.position +cns::delta[movementMinoriko.direction];
-		if (!cns::outofRange(pos, map.size()))
-		{
-			if (map[pos.x][pos.y].type == GridType::Shrine&&(map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
-			{
-				if (map[pos.x][pos.y].tag != -1)
-					map[pos.x][pos.y].tag--;
-				minoriko.have = false;
-				score++;
-			}
-		}
-	}
-	if (movementMarisa.type == MovementType::Put&&marisa.have&&marisa.hp>0)
-	{
-		Vec2i pos = marisa.position +cns::delta[movementMarisa.direction];
-		if (!cns::outofRange(pos, map.size()))
-		{
-			if (map[pos.x][pos.y].type == GridType::Shrine&&(map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
-			{
-				if (map[pos.x][pos.y].tag != -1)
-					map[pos.x][pos.y].tag--;
-				marisa.have = false;
-				score++;
+				if (map[pos.x][pos.y].type == GridType::Shrine && (map[pos.x][pos.y].tag > 0 || map[pos.x][pos.y].tag == -1))
+				{
+					if (map[pos.x][pos.y].tag != -1)
+						map[pos.x][pos.y].tag--;
+					player[p].have = false;
+					score++;
+				}
 			}
 		}
 	}
 	//判断启动的机关
 	colorUp = 0;
-	if (minoriko.hp > 0)
+	for (int p = 0; p < playerCount; ++p)
 	{
-		if (map[minoriko.position.x][minoriko.position.y].type == GridType::Trigger)
-			colorUp |= map[minoriko.position.x][minoriko.position.y].tag;
+		if (player[p].hp > 0)
+		{
+			if (map[player[p].position.x][player[p].position.y].type == GridType::Trigger)
+				colorUp |= map[player[p].position.x][player[p].position.y].tag;
+		}
 	}
-	if (map[marisa.position.x][marisa.position.y].type == GridType::Trigger)
-		colorUp |= map[marisa.position.x][marisa.position.y].tag;
 	//机关扣血
-	if (minoriko.hp>0&&map[minoriko.position.x][minoriko.position.y].type == GridType::Trap && (map[minoriko.position.x][minoriko.position.y].tag & colorUp))
-		minoriko.hp -= trapDamage;
-	if (marisa.hp > 0 && map[marisa.position.x][marisa.position.y].type == GridType::Trap && (map[marisa.position.x][marisa.position.y].tag & colorUp))
-		marisa.hp -= trapDamage;
-	if (minoriko.hp <= 0)
+	for (int p = 0; p < playerCount; ++p)
 	{
-		minoriko.position = Vec2i(-1, -1);
-		minoriko.hp = 0;
+		if (player[p].hp > 0 && map[player[p].position.x][player[p].position.y].type == GridType::Trap && (map[player[p].position.x][player[p].position.y].tag & colorUp))
+			player[p].hp -= trapDamage;
 	}
-	if (marisa.hp <= 0)
+	if (player[MINORIKO].hp <= 0)
 	{
-		marisa.hp = 0;
+		player[MINORIKO].position = Vec2i(-1, -1);
+		player[MINORIKO].hp = 0;
+	}
+	if (player[MARISA].hp <= 0)
+	{
+		player[MARISA].hp = 0;
 		gameOver = true;
 	}
 	round++;
@@ -243,8 +223,9 @@ void Game::roundFinish()
 }
 void Game::newGame(const GameInfo& startState)
 {
-	minoriko = startState.minoriko;
-	marisa = startState.marisa;
+	playerCount = startState.playerCount;
+	for (int p = 0; p < playerCount; ++p)
+		player[p] = startState.player[p];
 	round = startState.round;
 	roundLimit = startState.roundLimit;
 	map = startState.map;
@@ -253,8 +234,8 @@ void Game::newGame(const GameInfo& startState)
 	attackDamage = startState.attackDamage;
 	trapDamage = startState.trapDamage;
 	recoverHp = startState.recoverHp;
-	minorikoMaxHp= startState.minorikoMaxHp;
-	marisaMaxHp = startState.marisaMaxHp;
+	maxHp[MINORIKO]= startState.maxHp[MINORIKO];
+	maxHp[MARISA] = startState.maxHp[MARISA];
 	gameOver = false;
 }
 bool Game::timeUp()

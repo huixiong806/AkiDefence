@@ -3,6 +3,7 @@
 #include"./Map.hpp"
 #include<string>
 #include<sstream>
+#include<array>
 #include<vector>
 enum class MovementType
 {
@@ -30,18 +31,17 @@ public:
 struct GameInfo
 {
 	GridMap<Grid> map;
-	Player minoriko;
-	Player marisa;
+	std::array<Player, 4> player;
+	std::array<int, 4> maxHp;
 	int score;
 	int round;
 	int roundLimit;
-	int minorikoMaxHp;
-	int marisaMaxHp;
 	int collisionDamage;
 	int attackDamage;
 	int trapDamage;
 	int recoverHp;
 	int who;//0表示该minoriko行动，1表示该marisa行动
+	int playerCount;
 };
 class MovementGenerator
 {
@@ -50,8 +50,9 @@ protected:
 public:
 	std::string printMovement(Movement movement);
 	virtual Movement generateMovement(GameInfo) = 0;
-	std::vector<Movement>getMovementForMinoriko(GameInfo state);
-	std::vector<Movement>getMovementForMarisa(GameInfo state);
+	std::vector<Movement>getEffectiveMovement(GameInfo state);
+	//std::vector<Movement>getMovementForMinoriko(GameInfo state);
+	//std::vector<Movement>getMovementForMarisa(GameInfo state);
 	virtual void init(GameInfo info)=0;
 	virtual std::string getName()
 	{
