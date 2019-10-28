@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include"./MovementGenerator.h"
 #include"./Game.h"
 #include<iostream>
@@ -6,7 +6,7 @@
 #include<Windows.h>
 #include<map>
 using namespace std;
-//½öÏŞ¶şÈË°æ
+//ä»…é™äºŒäººç‰ˆ
 struct State
 {
 	Player player[2];

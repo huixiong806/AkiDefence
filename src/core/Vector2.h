@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<cmath>
 template<class T>
 class Vec2

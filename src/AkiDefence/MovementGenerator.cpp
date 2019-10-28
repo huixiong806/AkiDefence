@@ -1,24 +1,24 @@
-#include"MovementGenerator.h"
+ï»¿#include"MovementGenerator.h"
 #include"../core/Constant.h"
 std::string MovementGenerator::printMovement(Movement movement)
 {
 	std::stringstream ss;
-	const std::string dir[4] = { "¡ü","¡ı","¡û","¡ú" };
+	const std::string dir[4] = { "â†‘","â†“","â†","â†’" };
 	if (movement.type == MovementType::Move)
 	{
 		if (movement.direction == 4)
-			ss << "¾²Ö¹²»¶¯";
+			ss << "é™æ­¢ä¸åŠ¨";
 		else
-			ss << "Ïò" << dir[movement.direction] << "ÒÆ¶¯";
+			ss << "å‘" << dir[movement.direction] << "ç§»åŠ¨";
 	}
 	else if (movement.type == MovementType::Throw)
-		ss << "Ïò" << dir[movement.direction] << "Í¶³öºìÊí£¬¾àÀëÎª" << movement.distance;
+		ss << "å‘" << dir[movement.direction] << "æŠ•å‡ºçº¢è–¯ï¼Œè·ç¦»ä¸º" << movement.distance;
 	else if (movement.type == MovementType::Get)
-		ss << "´Ó" << dir[movement.direction] << "ÄÃÒ»¸öºìÊí";
+		ss << "ä»" << dir[movement.direction] << "æ‹¿ä¸€ä¸ªçº¢è–¯";
 	else if (movement.type == MovementType::Put)
-		ss << "Ïò" << dir[movement.direction] << "·ÅÒ»¸öºìÊí";
+		ss << "å‘" << dir[movement.direction] << "æ”¾ä¸€ä¸ªçº¢è–¯";
 	else if (movement.type == MovementType::Eat)
-		ss << "³ÔµôÊÖÉÏµÄºìÊí";
+		ss << "åƒæ‰æ‰‹ä¸Šçš„çº¢è–¯";
 	return ss.str();
 }
 std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state)
@@ -62,7 +62,7 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state)
 			}
 			continue;
 		}
-		//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+		//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 		int64_t colorUp = 0;
 		for (int p = 0; p < state.playerCount; ++p)
 		{
@@ -79,13 +79,13 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state)
 	}
 	if (state.player[side].have)
 	{
-		//³ÔºìÊí
+		//åƒçº¢è–¯
 		if (state.player[side].hp < state.maxHp[side])
 		{
 			movement.type = MovementType::Eat;
 			res.push_back(movement);
 		}
-		//Í¶ÖÀºìÊí
+		//æŠ•æ·çº¢è–¯
 		for (int i = 0; i <= 4; ++i)
 		{
 			Vec2i newPos = state.player[side^1].position + cns::delta[i];
@@ -147,7 +147,7 @@ std::vector<Movement> MovementGenerator::getMovementForMarisa(GameInfo state)
 			}
 			continue;
 		}
-		//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+		//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 		int64_t colorUp = 0;
 		if (state.minoriko.hp > 0)
 		{
@@ -163,13 +163,13 @@ std::vector<Movement> MovementGenerator::getMovementForMarisa(GameInfo state)
 	}
 	if (state.marisa.have)
 	{
-		//³ÔºìÊí
+		//åƒçº¢è–¯
 		if (state.marisa.hp < state.marisaMaxHp)
 		{
 			movement.type = MovementType::Eat;
 			res.push_back(movement);
 		}
-		//Í¶ÖÀºìÊí
+		//æŠ•æ·çº¢è–¯
 		for (int i = 0; i <= 4; ++i)
 		{
 			Vec2i newPos = state.minoriko.position + cns::delta[i];
@@ -235,7 +235,7 @@ std::vector<Movement> MovementGenerator::getMovementForMinoriko(GameInfo state)
 			}
 			continue;
 		}
-		//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+		//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 		int64_t colorUp = 0;
 		if (state.minoriko.hp > 0)
 		{
@@ -251,13 +251,13 @@ std::vector<Movement> MovementGenerator::getMovementForMinoriko(GameInfo state)
 	}
 	if (state.minoriko.have)
 	{
-		//³ÔºìÊí
+		//åƒçº¢è–¯
 		if (state.minoriko.hp < state.minorikoMaxHp)
 		{
 			movement.type = MovementType::Eat;
 			res.push_back(movement);
 		}
-		//Í¶ÖÀºìÊí
+		//æŠ•æ·çº¢è–¯
 		for (int i = 0; i <= 4; ++i)
 		{
 			Vec2i newPos = state.marisa.position + cns::delta[i];

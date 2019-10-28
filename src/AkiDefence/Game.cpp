@@ -1,4 +1,4 @@
-#include"Game.h"
+ï»¿#include"Game.h"
 #include"../core/Constant.h"
 #include<iostream>
 GameInfo Game::getInfo(int who)
@@ -23,11 +23,11 @@ const char gridStr[10] = { ' ','*','S','#','.','@','_' };
 void Game::printInfo()
 {
 	auto info = this->getInfo(0);
-	//cout << (info.who ? "ÎíÓêÄ§ÀíÉ³" : "Çïğ¦×Ó") << endl;
-	cout << "<Ê±¼ä> µÚ" << info.round << "Ãë£¬»¹Ê£ÏÂ" << info.roundLimit - info.round << "Ãë" << endl;
-	cout << "<µÃ·Ö> ÒÑ°áÔË:" << info.score << endl;
-	cout << "<²ÎÊı> »÷ÖĞ:" << -info.attackDamage << " Åö×²:"<<-info.collisionDamage<<" »ú¹Ø:"<<-info.trapDamage<<" »Ø¸´:"<<info.recoverHp<<endl;
-	cout << "<HP>   ğ¦×Ó" << info.player[MINORIKO].hp << "/" << info.maxHp[MINORIKO] << " Ä§ÀíÉ³" << info.player[MARISA].hp << "/" << info.maxHp[MARISA] << endl;
+	//cout << (info.who ? "é›¾é›¨é­”ç†æ²™" : "ç§‹ç©°å­") << endl;
+	cout << "<æ—¶é—´> ç¬¬" << info.round << "ç§’ï¼Œè¿˜å‰©ä¸‹" << info.roundLimit - info.round << "ç§’" << endl;
+	cout << "<å¾—åˆ†> å·²æ¬è¿:" << info.score << endl;
+	cout << "<å‚æ•°> å‡»ä¸­:" << -info.attackDamage << " ç¢°æ’:"<<-info.collisionDamage<<" æœºå…³:"<<-info.trapDamage<<" å›å¤:"<<info.recoverHp<<endl;
+	cout << "<HP>   ç©°å­" << info.player[MINORIKO].hp << "/" << info.maxHp[MINORIKO] << " é­”ç†æ²™" << info.player[MARISA].hp << "/" << info.maxHp[MARISA] << endl;
 	int64_t colorUp = 0;
 	if (info.player[MINORIKO].hp>0)
 		if (info.map[info.player[MINORIKO].position.x][info.player[MINORIKO].position.y].type == GridType::Trigger)
@@ -79,7 +79,7 @@ void Game::roundFinish()
 		movement[MINORIKO] = Movement::createMovementStay();
 		player[MINORIKO].position = Vec2i(-1, -1);
 	}
-	//³ÔºìÊí²¹Ñª
+	//åƒçº¢è–¯è¡¥è¡€
 	for (int p=0;p<playerCount;++p)
 	{
 		if (movement[p].type == MovementType::Eat)
@@ -90,7 +90,7 @@ void Game::roundFinish()
 			player[p].have = false;
 		}
 	}
-	//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+	//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 	int64_t colorUp = 0;
 	for (int p = 0; p < playerCount; ++p)
 	{
@@ -100,13 +100,13 @@ void Game::roundFinish()
 				colorUp |= map[player[p].position.x][player[p].position.y].tag;
 		}
 	}
-	//ÊÔÍ¼ÒÆ¶¯
+	//è¯•å›¾ç§»åŠ¨
 	Vec2i newPosMinoriko= player[MINORIKO].position,newPosMarisa= player[MARISA].position;
 	if (player[MINORIKO].hp > 0&& movement[MINORIKO].type == MovementType::Move)
 		newPosMinoriko = player[MINORIKO].position + cns::delta[movement[MINORIKO].direction];
 	if (movement[MARISA].type == MovementType::Move)
 		newPosMarisa = player[MARISA].position + cns::delta[movement[MARISA].direction];
-	//ÅĞ¶Ï¶şÈËÅö×²ÒÆ¶¯Ê§°Ü
+	//åˆ¤æ–­äºŒäººç¢°æ’ç§»åŠ¨å¤±è´¥
 	if ((newPosMarisa == player[MINORIKO].position&&newPosMinoriko == player[MARISA].position)|| newPosMarisa== newPosMinoriko)
 	{
 		player[MARISA].hp -= collisionDamage;
@@ -114,7 +114,7 @@ void Game::roundFinish()
 		newPosMarisa = player[MARISA].position;
 		newPosMinoriko = player[MINORIKO].position;
 	}
-	//ÅĞ¶ÏÔ½½çºÍ×²Ç½ÒÆ¶¯Ê§°Ü
+	//åˆ¤æ–­è¶Šç•Œå’Œæ’å¢™ç§»åŠ¨å¤±è´¥
 	bool moveFaildMarisa = false;
 	if (cns::outofRange(newPosMarisa,map.size()))
 		moveFaildMarisa = true;
@@ -143,7 +143,7 @@ void Game::roundFinish()
 		newPosMinoriko = player[MINORIKO].position;
 	player[MINORIKO].position = newPosMinoriko;
 	player[MARISA].position = newPosMarisa;
-	//Í¶ÖÀºìÊí¿ÛÑª
+	//æŠ•æ·çº¢è–¯æ‰£è¡€
 	if (movement[MINORIKO].type == MovementType::Throw&& movement[MINORIKO].distance > 0 && movement[MINORIKO].distance <=2&& player[MINORIKO].have)
 	{
 		Vec2i pos = player[MINORIKO].position+cns::delta[movement[MINORIKO].direction] * movement[MINORIKO].distance;
@@ -158,7 +158,7 @@ void Game::roundFinish()
 			player[MINORIKO].hp -= attackDamage;
 		player[MARISA].have = false;
 	}
-	//ºìÊíµÄ·ÅÏÂºÍÄÃÆğ
+	//çº¢è–¯çš„æ”¾ä¸‹å’Œæ‹¿èµ·
 	for (int p = 0; p < playerCount;++p)
 	{
 		if (player[p].hp <= 0)continue;
@@ -191,7 +191,7 @@ void Game::roundFinish()
 			}
 		}
 	}
-	//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+	//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 	colorUp = 0;
 	for (int p = 0; p < playerCount; ++p)
 	{
@@ -201,7 +201,7 @@ void Game::roundFinish()
 				colorUp |= map[player[p].position.x][player[p].position.y].tag;
 		}
 	}
-	//»ú¹Ø¿ÛÑª
+	//æœºå…³æ‰£è¡€
 	for (int p = 0; p < playerCount; ++p)
 	{
 		if (player[p].hp > 0 && map[player[p].position.x][player[p].position.y].type == GridType::Trap && (map[player[p].position.x][player[p].position.y].tag & colorUp))

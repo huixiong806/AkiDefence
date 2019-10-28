@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"./Map.hpp"
 #include"./Player.hpp"
 #include"./MovementGenerator.h"

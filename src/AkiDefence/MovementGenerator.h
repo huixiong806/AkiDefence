@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include"./Player.hpp"
 #include"./Map.hpp"
 #include<string>
@@ -17,8 +17,8 @@ class Movement
 {
 public:
 	MovementType type;
-	int direction;//±íÊ¾·½Ïò£¬0123·Ö±ğÎªÉÏÏÂ×óÓÒ,4Îª²»¶¯
-	int distance;//±íÊ¾×ßÂ·µÄ²½Êı»òÕßÈÓºìÊíµÄ¾àÀë
+	int direction;//è¡¨ç¤ºæ–¹å‘ï¼Œ0123åˆ†åˆ«ä¸ºä¸Šä¸‹å·¦å³,4ä¸ºä¸åŠ¨
+	int distance;//è¡¨ç¤ºèµ°è·¯çš„æ­¥æ•°æˆ–è€…æ‰”çº¢è–¯çš„è·ç¦»
 	static Movement createMovementStay()
 	{
 		Movement movement;
@@ -40,7 +40,7 @@ struct GameInfo
 	int attackDamage;
 	int trapDamage;
 	int recoverHp;
-	int who;//0±íÊ¾¸ÃminorikoĞĞ¶¯£¬1±íÊ¾¸ÃmarisaĞĞ¶¯
+	int who;//0è¡¨ç¤ºè¯¥minorikoè¡ŒåŠ¨ï¼Œ1è¡¨ç¤ºè¯¥marisaè¡ŒåŠ¨
 	int playerCount;
 };
 class MovementGenerator

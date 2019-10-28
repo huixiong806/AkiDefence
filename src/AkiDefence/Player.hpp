@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include<vector>
 #include"../core/Vector2.h"
 enum PlayerName
@@ -12,5 +12,5 @@ struct Player
 {
 	Vec2i position;
 	int hp;
-	bool have;//ÊÇ·ñÓµÓĞºìÊí
+	bool have;//æ˜¯å¦æ‹¥æœ‰çº¢è–¯
 };

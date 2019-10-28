@@ -1,4 +1,4 @@
-#include"Constant.h"
+﻿#include"Constant.h"
 namespace cns
 {
 	bool outofRange(Vec2i pos, Vec2i size)

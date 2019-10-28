@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include"./MovementGenerator.h"
 #include"../core/Constant.h"
 #include<iostream>
@@ -19,9 +19,9 @@ void Human::init(GameInfo info)
 }
 Movement Human::generateMovement(GameInfo info)
 {
-	cout << (info.who ? "ÎíÓêÄ§ÀíÉ³" : "Çïð¦×Ó") << endl;
+	cout << (info.who ? "é›¾é›¨é­”ç†æ²™" : "ç§‹ç©°å­") << endl;
 	vector<Movement> movement = getEffectiveMovement(info);
-	cout << "ÇëÑ¡ÔñÒ»¸ö²Ù×÷:" << endl;
+	cout << "è¯·é€‰æ‹©ä¸€ä¸ªæ“ä½œ:" << endl;
 	for (int i = 0; i < movement.size(); ++i)
 	{
 		cout<<i << ".";

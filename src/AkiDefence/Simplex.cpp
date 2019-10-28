@@ -1,4 +1,4 @@
-#include"Simplex.h"
+ï»¿#include"Simplex.h"
 #include<cassert>
 #include"../core/Constant.h"
 int SimplexAI::id[21 << 1];
@@ -44,7 +44,7 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			}
 			continue;
 		}
-		//ÅĞ¶ÏÆô¶¯µÄ»ú¹Ø
+		//åˆ¤æ–­å¯åŠ¨çš„æœºå…³
 		int64_t colorUp = 0;
 		for (int p = 0; p < 2; ++p)
 		{
@@ -61,13 +61,13 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 	}
 	if (state.player[side].have)
 	{
-		//³ÔºìÊí
+		//åƒçº¢è–¯
 		if (state.player[side].hp < startState.maxHp[side])
 		{
 			movement.type = MovementType::Eat;
 			res.push_back(movement);
 		}
-		//Í¶ÖÀºìÊí
+		//æŠ•æ·çº¢è–¯
 		for (int i = 0; i <= 4; ++i)
 		{
 			Vec2i newPos = state.player[side ^ 1].position + cns::delta[i];
@@ -120,7 +120,7 @@ double SimplexAI::solve(State state)
 	vector<Movement>MovementMinoriko = getEffectiveMovement(state,MINORIKO);
 	int szmarisa = MovementMarisa.size(), szminoriko = MovementMinoriko.size();
 	int row = szmarisa, col = szminoriko;
-	//¹¹ÔìÊÕÒæ¾ØÕó
+	//æ„é€ æ”¶ç›ŠçŸ©é˜µ
 	for (int i = 0; i < szmarisa; ++i)
 		for (int j = 0; j < szminoriko; ++j)
 		{
@@ -148,7 +148,7 @@ double SimplexAI::solve(State state)
 		}
 		cout << endl;
 	}*/
-	//µ¥´¿ĞÎ 
+	//å•çº¯å½¢ 
 
 	memset(a, 0, sizeof(a));
 	memset(id, 0, sizeof(id));
@@ -253,9 +253,9 @@ Movement SimplexAI::generateMovement(GameInfo info)
 	state.player[MINORIKO] = info.player[MINORIKO];
 	state.roundLeft = info.roundLimit - info.round;
 	//printInfo(info);
-	cout << (info.who ? "ÎíÓêÄ§ÀíÉ³" : "Çïğ¦×Ó") << endl;
-	cout << "×îÓÅ½âÆ½¾ùµÃ·Ö:" << info.score + avgScore[state] - 1.0 << endl;
-	//printf("×îÓÅ½âÆ½¾ùµÃ·Ö:%.4lf\n", info.score+avgScore[state]-1.0);
+	cout << (info.who ? "é›¾é›¨é­”ç†æ²™" : "ç§‹ç©°å­") << endl;
+	cout << "æœ€ä¼˜è§£å¹³å‡å¾—åˆ†:" << info.score + avgScore[state] - 1.0 << endl;
+	//printf("æœ€ä¼˜è§£å¹³å‡å¾—åˆ†:%.4lf\n", info.score+avgScore[state]-1.0);
 	double p[10][10];
 	memset(p, 0, sizeof(p));
 	vector<Movement>MovementMarisa = getEffectiveMovement(state, MARISA);
@@ -264,7 +264,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 	int row = szmarisa, col = szminoriko;
 	if (info.who == 0)
 		swap(row, col);
-	//¹¹ÔìÊÕÒæ¾ØÕó
+	//æ„é€ æ”¶ç›ŠçŸ©é˜µ
 	for (int i = 0; i < row; ++i)
 		for (int j = 0; j < col; ++j)
 		{
@@ -293,7 +293,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 	}
 	cout << endl;
 	}*/
-	//µ¥´¿ĞÎ 
+	//å•çº¯å½¢ 
 	memset(a, 0, sizeof(a));
 	memset(id, 0, sizeof(id));
 	for (int j = 1; j <= row; ++j)
@@ -355,7 +355,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 		{
 			if ((int)round(res[i] * ep*100.0) > 0)
 			{
-				cout<<printMovement(MovementMarisa[i - 1])<<" ¸ÅÂÊ:"<< (int)round(res[i] * ep * 100.0)<<endl;
+				cout<<printMovement(MovementMarisa[i - 1])<<" æ¦‚ç‡:"<< (int)round(res[i] * ep * 100.0)<<endl;
 			}
 			if (!ok&&randNum < res[i] * ep)
 			{
@@ -371,7 +371,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 		{
 			if ((int)round(res[i] * ep*100.0) > 0)
 			{
-				cout << printMovement(MovementMinoriko[i - 1]) << " ¸ÅÂÊ:" << (int)round(res[i] * ep * 100.0) << endl;
+				cout << printMovement(MovementMinoriko[i - 1]) << " æ¦‚ç‡:" << (int)round(res[i] * ep * 100.0) << endl;
 			}
 			if (!ok&&randNum < res[i] * ep)
 			{

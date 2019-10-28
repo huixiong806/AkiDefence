@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"./MovementGenerator.h"
 class Stayer:public MovementGenerator
 {
