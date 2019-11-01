@@ -1,9 +1,6 @@
 ﻿#include"Simplex.h"
 #include<cassert>
 #include"../core/Constant.h"
-int SimplexAI::id[21 << 1];
-double SimplexAI::a[21][21];
-map<State, double> SimplexAI::avgScore;
 std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side)
 {
 	std::vector<Movement> res;
@@ -28,7 +25,7 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			continue;
 		if (startState.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
-			if (!state.player[side].have)
+			if (state.player[side].have<startState.bucketVolume[side])
 			{
 				movement.type = MovementType::Get;
 				res.push_back(movement);
@@ -246,14 +243,14 @@ std::ostream& operator<<(std::ostream& os, Movement m)
 	if ((int)m.type == 1)os << " " << (int)m.distance;
 	return os;
 }
-Movement SimplexAI::generateMovement(GameInfo info)
+Movement SimplexAI::generateMovement(GameInfo info,int who)
 {
 	State state;
 	state.player[MARISA] = info.player[MARISA];
 	state.player[MINORIKO] = info.player[MINORIKO];
 	state.roundLeft = info.roundLimit - info.round;
 	//printInfo(info);
-	cout << (info.who ? "雾雨魔理沙" : "秋穰子") << endl;
+	cout << (who ? "雾雨魔理沙" : "秋穰子") << endl;
 	cout << "最优解平均得分:" << info.score + avgScore[state] - 1.0 << endl;
 	//printf("最优解平均得分:%.4lf\n", info.score+avgScore[state]-1.0);
 	double p[10][10];
@@ -262,7 +259,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 	vector<Movement>MovementMinoriko = getEffectiveMovement(state, MINORIKO);
 	int szmarisa = MovementMarisa.size(), szminoriko = MovementMinoriko.size();
 	int row = szmarisa, col = szminoriko;
-	if (info.who == 0)
+	if (who == 0)
 		swap(row, col);
 	//构造收益矩阵
 	for (int i = 0; i < row; ++i)
@@ -274,15 +271,15 @@ Movement SimplexAI::generateMovement(GameInfo info)
 			game.setPlayer(state.player[MARISA], MARISA);
 			game.setPlayer(state.player[MINORIKO], MINORIKO);
 			game.round = game.roundLimit - state.roundLeft;
-			game.setMovement(MovementMarisa[info.who?i:j], MARISA);
-			game.setMovement(MovementMinoriko[info.who?j:i], MINORIKO);
+			game.setMovement(MovementMarisa[who?i:j], MARISA);
+			game.setMovement(MovementMinoriko[who?j:i], MINORIKO);
 			game.roundFinish();
 			State nextState;
 			nextState.player[MARISA] = game.getPlayerConst(MARISA);
 			nextState.player[MINORIKO] = game.getPlayerConst(MINORIKO);
 			nextState.roundLeft = game.roundLimit - game.round;
 			p[i][j] = avgScore[nextState] + game.score;
-			if (!info.who)p[i][j] = 9999.0 - p[i][j];
+			if (!who)p[i][j] = 9999.0 - p[i][j];
 		}
 	/*
 	for (int i = 0; i < szmarisa; ++i)
@@ -349,7 +346,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 	double randNum = rand() % 1000;
 	randNum /= 1000.0;
 	//printf("%lf", randNum);
-	if (info.who)
+	if (who==1)
 	{
 		for (i = 1; i <= row; ++i)
 		{
@@ -365,7 +362,7 @@ Movement SimplexAI::generateMovement(GameInfo info)
 			randNum -= res[i] * ep;
 		}
 	}
-	else
+	else if(who==0)
 	{
 		for (i = 1; i <= row; ++i)
 		{

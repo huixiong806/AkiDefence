@@ -10,7 +10,7 @@ enum PlayerName
 };
 struct Player
 {
-	Vec2i position;
-	int hp;
-	bool have;//是否拥有红薯
+	Vec2<int16_t> position;
+	int16_t hp;
+	int16_t have;//是否拥有红薯
 };

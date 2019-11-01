@@ -9,6 +9,7 @@ enum class GridType
 	Trap,         //机关
 	MoveableWall, //活动墙
 	Trigger,      //踏板
+	tree          //大树
 };
 struct Grid
 {

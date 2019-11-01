@@ -36,9 +36,9 @@ class Game;
 class SimplexAI:public MovementGenerator
 {
 private:
-	static int id[21 << 1];
-	static double a[21][21];
-	static map<State, double> avgScore;
+	int id[21 << 1];
+	double a[21][21];
+	map<State, double> avgScore;
 	GameInfo startState;
 	void printMovements(vector<Movement>& movements); 
 	double solve(State state);
@@ -47,5 +47,5 @@ private:
 	friend class game;
 public:
 	void init(GameInfo info);
-	Movement generateMovement(GameInfo info);
+	Movement generateMovement(GameInfo info,int who);
 };

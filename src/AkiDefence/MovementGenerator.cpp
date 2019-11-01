@@ -21,10 +21,10 @@ std::string MovementGenerator::printMovement(Movement movement)
 		ss << "吃掉手上的红薯";
 	return ss.str();
 }
-std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state)
+std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int who)
 {
 	std::vector<Movement> res;
-	const int side = state.who;
+	const int side = who;
 	Movement movement= Movement::createMovementStay();
 	if (state.player[side].hp <= 0)
 	{
@@ -46,7 +46,7 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state)
 			continue;
 		if (state.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
-			if (!state.player[side].have)
+			if (state.player[side].have<state.bucketVolume[side])
 			{
 				movement.type = MovementType::Get;
 				res.push_back(movement);

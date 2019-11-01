@@ -1,0 +1,55 @@
+输入格式(文本文件,后缀名为m)
+首先是用空格和换行符隔开的若干整数，按顺序分别表示
+地图行数、地图列数、
+当前时间、总时间、
+当前已经运到雾雨魔法店的红薯数、
+game_collision_damage、game_attack_damage、game_trap_damage、game_sweetpotato_recover、game_tree_affect
+支持的人数(四位二进制数，从低位到高位分别表示是否支持1人，2人，3人，4人。规则0不支持单人游戏)。
+minoriko_start_n、minoriko_start_m、minoriko_hp、minoriko_hp_max、minoriko_sweetpotato_count、minoriko_sweetpotato_max。
+marisa_start_n、marisa_start_m、marisa_hp、marisa_hp_max、marisa_sweetpotato_count、marisa_sweetpotato_max。
+shizuha_start_n、shizuha_start_m、shizuha_hp、shizuha_hp_max、shizuha_sweetpotato_count、shizuha_sweetpotato_max。
+cirno_start_n、cirno_start_m、cirno_hp、cirno_hp_max、cirno_sweetpotato_count、cirno_sweetpotato_max。
+接下来n*m行，每行有若干整数描述地图交互场景的信息。整体从上到下，每行从左到右。
+第一个整数表示该格子的交互场景类型。
+如果为0，表示该位置为空，本行结束，以此类推。
+如果为1，表示该位置有一个红薯堆。
+如果为2，表示该位置有一个雾雨魔法店。
+如果为3，表示该位置有一个墙。
+如果为4，表示该位置有一个钉板陷阱，然后输入一个整数，表示颜色。
+如果为5，表示该位置有一个活动墙，然后输入一个整数，表示颜色。
+如果为6，表示该位置有一个踏板，然后输入一个整数，表示颜色。
+如果为7，表示该位置有一个大树，然后输入一个整数，表示L值。
+
+输入格式(二进制文件,后缀名为akm)
+超过1字节的类型按照低位优先方式存储
+00-01 校验码。[00]='A',[01]='k'。
+02    规则编码。0x00表示规则0，目前仅00有效
+03-04 地图行数(int16)
+05-06 地图列数(int16)
+07-0a 当前时间(int32)
+0b-0e 总时间(int32)
+0f-10 当前已经运到雾雨魔法店的红薯数(int16)
+11-12 game_collision_damage(int16)
+13-14 game_attack_damage(int16)
+15-16 game_trap_damage(int16)
+17-18 game_sweetpotato_recover(int16)
+19-1a 保留        //game_tree_affect(int16)
+1b    支持的人数(四位二进制数，从低位到高位分别表示是否支持1人，2人，3人，4人。规则0不支持单人游戏)(int8)
+1c-27 minoriko_start_n、minoriko_start_m、minoriko_hp、minoriko_hp_max、minoriko_sweetpotato_count、minoriko_sweetpotato_max。(int16*6)
+28-33 marisa_start_n、marisa_start_m、marisa_hp、marisa_hp_max、marisa_sweetpotato_count、marisa_sweetpotato_max。(int16*6)
+34-3f shizuha_start_n、shizuha_start_m、shizuha_hp、shizuha_hp_max、shizuha_sweetpotato_count、shizuha_sweetpotato_max。(int16*6)
+40-4b cirno_start_n、cirno_start_m、cirno_hp、cirno_hp_max、cirno_sweetpotato_count、cirno_sweetpotato_max。(int16*6)
+接下来将会有[00-01]*[02-03]*9个字节，分别从上到下从左到右表示每一个格子的状态。
+其中每个格子的信息占据9个字节。
+第1个字节表示格子中交互场景的类型。
+第2~9个字节表示格子的tag值，类型为int64
+
+类型
+如果为0，表示该位置为空。tag无意义。
+如果为1，表示该位置有一个红薯堆。tag无意义。
+如果为2，表示该位置有一个雾雨魔法店。tag无意义。
+如果为3，表示该位置有一个墙。tag无意义。
+如果为4，表示该位置有一个钉板陷阱，tag表示颜色。
+如果为5，表示该位置有一个活动墙，tag表示颜色。
+如果为6，表示该位置有一个踏板，tag表示颜色。
+如果为7，表示该位置有一个大树，tag表示L值。

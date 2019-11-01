@@ -9,7 +9,7 @@ class Human:public MovementGenerator
 {
 private:
 public:
-	Movement generateMovement(GameInfo info);
+	Movement generateMovement(GameInfo info, int who);
 	void init(GameInfo info);
 };
 const char gridStr[10] = { ' ','*','S','#','.','@','_' };
@@ -17,10 +17,10 @@ void Human::init(GameInfo info)
 {
 
 }
-Movement Human::generateMovement(GameInfo info)
+Movement Human::generateMovement(GameInfo info,int who)
 {
-	cout << (info.who ? "雾雨魔理沙" : "秋穰子") << endl;
-	vector<Movement> movement = getEffectiveMovement(info);
+	cout << (who ? "雾雨魔理沙" : "秋穰子") << endl;
+	vector<Movement> movement = getEffectiveMovement(info,who);
 	cout << "请选择一个操作:" << endl;
 	for (int i = 0; i < movement.size(); ++i)
 	{
