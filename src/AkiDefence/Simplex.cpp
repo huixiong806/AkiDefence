@@ -110,7 +110,7 @@ double SimplexAI::solve(State state)
 	c++;
 	if (c % 100000 == 0)cout << c << endl;
 	if (state.player[MARISA].hp <= 0 || state.roundLeft <= 0)
-		return avgScore[state] = 1.0+((double)rand() / 100000000000000.0)- (16383.0 / 100000000000000.0);
+		return avgScore[state] = 1.0+(((double)rand() / 100000000000000.0)- (16383.0 / 100000000000000.0));
 	double p[10][10];
 	memset(p, 0, sizeof(p));
 	vector<Movement>MovementMarisa = getEffectiveMovement(state,MARISA);

@@ -17,9 +17,10 @@ GameInfo Game::getInfo()
 	res.bucketVolume=bucketVolume;
 	res.maxHp[MARISA] =maxHp[MARISA];
 	res.maxHp[MINORIKO] = maxHp[MINORIKO];
+	res.playerCount = playerCount;
 	return res;
 }
-const char gridStr[10] = { ' ','*','S','#','.','@','_' };
+const char gridStr[10] = { ' ','*','S','#','.','@','_' ,'T'};
 void Game::printInfo()
 {
 	auto info = this->getInfo();
@@ -91,6 +92,20 @@ void Game::roundFinish()
 			player[p].have--;
 		}
 	}
+	//大树造成的血量改变
+	for (int p = 0; p < playerCount; ++p)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			auto treePos = player[p].position + cns::delta[i];
+			if (!cns::outofRange(treePos, map.size()) && map[treePos.x][treePos.y].type == GridType::Tree)
+			{
+				player[p].hp += map[treePos.x][treePos.y].tag;
+				if (player[p].hp > maxHp[p])
+					player[p].hp = maxHp[p];
+			}
+		}
+	}
 	//判断启动的机关
 	int64_t colorUp = 0;
 	for (int p = 0; p < playerCount; ++p)
@@ -121,6 +136,8 @@ void Game::roundFinish()
 		moveFaildMarisa = true;
 	if (!moveFaildMarisa&&map[newPosMarisa.x][newPosMarisa.y].type == GridType::Wall)
 		moveFaildMarisa = true;
+	if (!moveFaildMarisa&&map[newPosMarisa.x][newPosMarisa.y].type == GridType::Tree)
+		moveFaildMarisa = true;
 	if (!moveFaildMarisa&&map[newPosMarisa.x][newPosMarisa.y].type == GridType::Shrine)
 		moveFaildMarisa = true;
 	if (!moveFaildMarisa&&map[newPosMarisa.x][newPosMarisa.y].type == GridType::Pile)
@@ -133,6 +150,8 @@ void Game::roundFinish()
 	if (cns::outofRange(newPosMinoriko, map.size()))
 		moveFaildMinoriko = true;
 	if (!moveFaildMinoriko&&map[newPosMinoriko.x][newPosMinoriko.y].type == GridType::Wall)
+		moveFaildMinoriko = true;
+	if (!moveFaildMinoriko&&map[newPosMinoriko.x][newPosMinoriko.y].type == GridType::Tree)
 		moveFaildMinoriko = true;
 	if (!moveFaildMinoriko&&map[newPosMinoriko.x][newPosMinoriko.y].type == GridType::Shrine)
 		moveFaildMinoriko = true;
@@ -158,6 +177,22 @@ void Game::roundFinish()
 		if (player[MINORIKO].position == pos)
 			player[MINORIKO].hp -= attackDamage;
 		player[MARISA].have--;
+	}
+	//判断启动的机关
+	colorUp = 0;
+	for (int p = 0; p < playerCount; ++p)
+	{
+		if (player[p].hp > 0)
+		{
+			if (map[player[p].position.x][player[p].position.y].type == GridType::Trigger)
+				colorUp |= map[player[p].position.x][player[p].position.y].tag;
+		}
+	}
+	//机关扣血
+	for (int p = 0; p < playerCount; ++p)
+	{
+		if (player[p].hp > 0 && map[player[p].position.x][player[p].position.y].type == GridType::Trap && (map[player[p].position.x][player[p].position.y].tag & colorUp))
+			player[p].hp -= trapDamage;
 	}
 	//红薯的放下和拿起
 	for (int p = 0; p < playerCount;++p)
@@ -187,22 +222,6 @@ void Game::roundFinish()
 			}
 		}
 	}
-	//判断启动的机关
-	colorUp = 0;
-	for (int p = 0; p < playerCount; ++p)
-	{
-		if (player[p].hp > 0)
-		{
-			if (map[player[p].position.x][player[p].position.y].type == GridType::Trigger)
-				colorUp |= map[player[p].position.x][player[p].position.y].tag;
-		}
-	}
-	//机关扣血
-	for (int p = 0; p < playerCount; ++p)
-	{
-		if (player[p].hp > 0 && map[player[p].position.x][player[p].position.y].type == GridType::Trap && (map[player[p].position.x][player[p].position.y].tag & colorUp))
-			player[p].hp -= trapDamage;
-	}
 	if (player[MINORIKO].hp <= 0)
 	{
 		player[MINORIKO].position = Vec2i(-1, -1);
@@ -214,7 +233,7 @@ void Game::roundFinish()
 		gameOver = true;
 	}
 	round++;
-	if (round == roundLimit)
+	if (round >= roundLimit)
 		gameOver = true;
 }
 void Game::newGame(const GameInfo& startState)

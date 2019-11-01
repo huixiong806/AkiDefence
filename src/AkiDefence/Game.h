@@ -10,7 +10,7 @@ class SimplexAI;
 class Game
 {
 private:
-	int playerCount=2;//
+	int playerCount;//
 	bool gameOver;
 	int16_t score;
 	GridMap<Grid> map;

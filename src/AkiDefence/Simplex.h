@@ -32,7 +32,6 @@ struct State
 		return player[MARISA].have < rhs.player[MARISA].have;
 	}
 };
-class Game;
 class SimplexAI:public MovementGenerator
 {
 private:
