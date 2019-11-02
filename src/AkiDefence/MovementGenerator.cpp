@@ -7,7 +7,7 @@ std::string MovementGenerator::printMovement(Movement movement)
 	if (movement.type == MovementType::Move)
 	{
 		if (movement.direction == 4)
-			ss << "静止不动";
+			ss << "原地不动";
 		else
 			ss << "向" << dir[movement.direction] << "移动";
 	}
@@ -18,12 +18,13 @@ std::string MovementGenerator::printMovement(Movement movement)
 	else if (movement.type == MovementType::Put)
 		ss << "向" << dir[movement.direction] << "放一个红薯";
 	else if (movement.type == MovementType::Eat)
-		ss << "吃掉手上的红薯";
+		ss << "吃掉一个红薯";
 	return ss.str();
 }
 std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int who)
 {
 	std::vector<Movement> res;
+	res.reserve(8);
 	const int side = who;
 	Movement movement= Movement::createMovementStay();
 	if (state.player[side].hp <= 0)
@@ -46,6 +47,11 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int 
 			continue;
 		if (state.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
+			if (side == SHIZUHA)
+			{
+				movement.type = MovementType::Move;
+				res.push_back(movement);
+			}
 			if (state.player[side].have<state.bucketVolume[side])
 			{
 				movement.type = MovementType::Get;
@@ -55,7 +61,7 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int 
 		}
 		if (state.map[newPos.x][newPos.y].type == GridType::Shrine)
 		{
-			if (state.player[side].have)
+			if (state.player[side].have&&side==MARISA)
 			{
 				movement.type = MovementType::Put;
 				res.push_back(movement);
@@ -63,21 +69,35 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int 
 			continue;
 		}
 		//判断启动的机关
-		int64_t colorUp = 0;
+		std::vector<int> activeColor;
 		for (int p = 0; p < state.playerCount; ++p)
 		{
 			if (state.player[p].hp > 0)
 			{
 				if (state.map[state.player[p].position.x][state.player[p].position.y].type == GridType::Trigger)
-					colorUp |= state.map[state.player[p].position.x][state.player[p].position.y].tag;
+					activeColor.push_back(state.map[state.player[p].position.x][state.player[p].position.y].tag);
 			}
 		}
-		if (state.map[newPos.x][newPos.y].type == GridType::MoveableWall && (state.map[newPos.x][newPos.y].tag & colorUp))
+		bool colorActived = false;
+		for (auto color : activeColor)
+			if (color == state.map[newPos.x][newPos.y].tag)
+				colorActived = true;
+		bool someOneStandOnThere = false;
+		for (int p = 0; p < state.playerCount; ++p)
+		{
+			if (state.player[p].hp > 0 && state.player[p].position == newPos)
+			{
+				someOneStandOnThere = true;
+				break;
+			}
+		}
+		if (state.map[newPos.x][newPos.y].type == GridType::MoveableWall && !someOneStandOnThere && colorActived)
 			continue;
 		movement.type = MovementType::Move;
 		res.push_back(movement);
 	}
-	if (state.player[side].have)
+	bool shizuhaInPile = (side == SHIZUHA)&&(state.map[state.player[SHIZUHA].position.x][state.player[SHIZUHA].position.y].type == GridType::Pile);
+	if (state.player[side].have|| shizuhaInPile)
 	{
 		//吃红薯
 		if (state.player[side].hp < state.maxHp[side])
@@ -86,26 +106,49 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int 
 			res.push_back(movement);
 		}
 		//投掷红薯
-		for (int i = 0; i <= 4; ++i)
+		std::vector<Vec2i> usefulPosition;
+		for (int p = 0; p < state.playerCount; ++p)
 		{
-			Vec2i newPos = state.player[side^1].position + cns::delta[i];
-			bool ok = false;
-			for (int j = 0; j < 4; ++j)
+			if (state.player[p].hp<=0||p == side)continue;
+			for (int i = 0; i <= 4; ++i)
 			{
-				for (int k = 1; k <= 2; ++k)
+				Vec2i newPos = state.player[p].position + cns::delta[i];
+				if (!cns::outofRange(newPos, state.map.size())&&\
+					state.map[newPos.x][newPos.y].type != GridType::Wall&&\
+					state.map[newPos.x][newPos.y].type != GridType::Shrine&&\
+					state.map[newPos.x][newPos.y].type != GridType::Tree\
+					)
 				{
-					Vec2i tarPos = state.player[side].position + cns::delta[j] * k;
-					if (newPos == tarPos)
+					bool haveNotAdded = true;
+					for (auto item : usefulPosition)
+						if (item == newPos)
+						{
+							haveNotAdded = false;
+							break;
+						}
+					if (haveNotAdded)
+						usefulPosition.push_back(newPos);
+				}
+					
+			}
+		}
+		//前两层循环为投到哪个地方
+		for (int j = 0; j < 4; ++j)
+		{
+			for (int k = 1; k <= 2; ++k)
+			{
+				if (shizuhaInPile&&k == 2)continue;
+				Vec2i tarPos = state.player[side].position + cns::delta[j] * k;
+				for (int i = 0; i < usefulPosition.size(); ++i)
+				{
+					if (usefulPosition[i] == tarPos)
 					{
-						ok = true;
 						movement.type = MovementType::Throw;
 						movement.direction = j;
 						movement.distance = k;
 						res.push_back(movement);
-						break;
 					}
 				}
-				if (ok)break;
 			}
 		}
 	}

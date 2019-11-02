@@ -4,6 +4,7 @@
 std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side)
 {
 	std::vector<Movement> res;
+	res.reserve(8);
 	Movement movement = Movement::createMovementStay();
 	if (state.player[side].hp <= 0)
 	{
@@ -42,16 +43,29 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			continue;
 		}
 		//判断启动的机关
-		int64_t colorUp = 0;
-		for (int p = 0; p < 2; ++p)
+		std::vector<int> activeColor;
+		for (int p = 0; p < startState.playerCount; ++p)
 		{
 			if (state.player[p].hp > 0)
 			{
 				if (startState.map[state.player[p].position.x][state.player[p].position.y].type == GridType::Trigger)
-					colorUp |= startState.map[state.player[p].position.x][state.player[p].position.y].tag;
+					activeColor.push_back(startState.map[state.player[p].position.x][state.player[p].position.y].tag);
 			}
 		}
-		if (startState.map[newPos.x][newPos.y].type == GridType::MoveableWall && (startState.map[newPos.x][newPos.y].tag & colorUp))
+		bool colorActived = false;
+		for (auto color : activeColor)
+			if (color == startState.map[newPos.x][newPos.y].tag)
+				colorActived = true;
+		bool someOneStandOnThere = false;
+		for (int p = 0; p < startState.playerCount; ++p)
+		{
+			if (state.player[p].hp > 0 && state.player[p].position == newPos)
+			{
+				someOneStandOnThere = true;
+				break;
+			}
+		}
+		if (startState.map[newPos.x][newPos.y].type == GridType::MoveableWall && !someOneStandOnThere && colorActived)
 			continue;
 		movement.type = MovementType::Move;
 		res.push_back(movement);
@@ -103,9 +117,10 @@ void SimplexAI::pivot(int l, int e, int row, int col)
 				a[i][j] -= r * a[l][j];
 		}
 }
-double SimplexAI::solve(State state)
+double SimplexAI::solve(State state)noexcept
 {
-	if (avgScore.find(state) != avgScore.end())return avgScore[state];
+	auto mapNode = avgScore.find(state);
+	if (avgScore.find(state) != avgScore.end())return mapNode->second;
 	static int c = 0;
 	c++;
 	if (c % 100000 == 0)cout << c << endl;
@@ -121,30 +136,21 @@ double SimplexAI::solve(State state)
 	for (int i = 0; i < szmarisa; ++i)
 		for (int j = 0; j < szminoriko; ++j)
 		{
-			Game game;
-			game.newGame(startState);
-			game.score = 0;
-			game.setPlayer(state.player[MARISA],MARISA);
-			game.setPlayer(state.player[MINORIKO], MINORIKO);
-			game.round = game.roundLimit - state.roundLeft;
-			game.setMovement(MovementMarisa[i],MARISA);
-			game.setMovement(MovementMinoriko[j],MINORIKO);
-			game.roundFinish();
+			templateGame.score = 0;
+			templateGame.setGameOver(false);
+			templateGame.setPlayer(state.player[MARISA],MARISA);
+			templateGame.setPlayer(state.player[MINORIKO], MINORIKO);
+			templateGame.round = templateGame.roundLimit - state.roundLeft;
+			templateGame.setMovement(MovementMarisa[i],MARISA);
+			templateGame.setMovement(MovementMinoriko[j],MINORIKO);
+			templateGame.fastRoundFinishForTwoPlayer();
 			State nextState;
-			nextState.player[MARISA] = game.getPlayerConst(MARISA);
-			nextState.player[MINORIKO] = game.getPlayerConst(MINORIKO);
-			nextState.roundLeft = game.roundLimit - game.round;
-			p[i][j] = solve(nextState) + game.score;
+			nextState.player[MARISA] = templateGame.getPlayerConst(MARISA);
+			nextState.player[MINORIKO] = templateGame.getPlayerConst(MINORIKO);
+			nextState.roundLeft = templateGame.roundLimit - templateGame.round;
+			int score = templateGame.score;
+			p[i][j] = solve(nextState) + score;
 		}
-	/*
-	for (int i = 0; i < szmarisa; ++i)
-	{
-		for (int j = 0; j < szminoriko; ++j)
-		{
-			printf("%lf ", p[i][j]);
-		}
-		cout << endl;
-	}*/
 	//单纯形 
 
 	memset(a, 0, sizeof(a));
@@ -172,23 +178,24 @@ double SimplexAI::solve(State state)
 			for (j = 1; j <= row && !e; ++j)
 				if (a[l][j] < -cns::eps)
 					e = j;				
-			assert(e);
+			//assert(e);
 			pivot(l, e, row, col);
 		}
-		try
+		//try
 		{
-			long long ct = 0;
+			//long long ct = 0;
 			while (true) {
 				for (j = 1; j <= row; ++j)
 					if (a[0][j] > cns::eps)
 						break;
 				if ((e = j) > row) break;
+				/*
 				ct++;
 				if (ct > 100000000)
 				{
 					throw(-1);
 					cout << e << endl;
-				}
+				}*/
 				k = 1e18; l = 0;
 				for (i = 1; i <= col; ++i)
 					if (a[i][e] > cns::eps && (a[i][0] / a[i][e]) < k)
@@ -196,10 +203,11 @@ double SimplexAI::solve(State state)
 						k = a[i][0] / a[i][e];
 						l = i;
 					}
-				assert(l);
+				//assert(l);
 				pivot(l, e, row, col);
 			}
 		}
+		/*
 		catch (int t)
 		{
 			for (int i = 0; i < szmarisa; ++i)
@@ -212,7 +220,7 @@ double SimplexAI::solve(State state)
 			}
 			//cout << "bad" << endl;
 			continue;
-		}
+		}*/
 		break;
 	}
 	double res[21 << 1];
@@ -226,6 +234,7 @@ double SimplexAI::solve(State state)
 void SimplexAI::init(GameInfo info)
 {
 	startState = info;
+	templateGame.newGame(startState);
 	State sta;
 	sta.player[MARISA] = info.player[MARISA];
 	sta.player[MINORIKO] = info.player[MINORIKO];
@@ -265,20 +274,18 @@ Movement SimplexAI::generateMovement(GameInfo info,int who)
 	for (int i = 0; i < row; ++i)
 		for (int j = 0; j < col; ++j)
 		{
-			Game game;
-			game.newGame(startState);
-			game.score = 0;
-			game.setPlayer(state.player[MARISA], MARISA);
-			game.setPlayer(state.player[MINORIKO], MINORIKO);
-			game.round = game.roundLimit - state.roundLeft;
-			game.setMovement(MovementMarisa[who?i:j], MARISA);
-			game.setMovement(MovementMinoriko[who?j:i], MINORIKO);
-			game.roundFinish();
+			templateGame.score = 0;
+			templateGame.setPlayer(state.player[MARISA], MARISA);
+			templateGame.setPlayer(state.player[MINORIKO], MINORIKO);
+			templateGame.round = templateGame.roundLimit - state.roundLeft;
+			templateGame.setMovement(MovementMarisa[who?i:j], MARISA);
+			templateGame.setMovement(MovementMinoriko[who?j:i], MINORIKO);
+			templateGame.roundFinish();
 			State nextState;
-			nextState.player[MARISA] = game.getPlayerConst(MARISA);
-			nextState.player[MINORIKO] = game.getPlayerConst(MINORIKO);
-			nextState.roundLeft = game.roundLimit - game.round;
-			p[i][j] = avgScore[nextState] + game.score;
+			nextState.player[MARISA] = templateGame.getPlayerConst(MARISA);
+			nextState.player[MINORIKO] = templateGame.getPlayerConst(MINORIKO);
+			nextState.roundLeft = templateGame.roundLimit - templateGame.round;
+			p[i][j] = avgScore[nextState] + templateGame.score;
 			if (!who)p[i][j] = 9999.0 - p[i][j];
 		}
 	/*

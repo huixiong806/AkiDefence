@@ -22,4 +22,8 @@ struct Grid
 	当type=1~2时表示剩余红薯数量
 	*/
 	int64_t tag;
+	bool alwaysCantStand()
+	{
+		return type == GridType::Wall || type == GridType::Shrine || type == GridType::Tree;
+	}
 };

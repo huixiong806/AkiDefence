@@ -12,14 +12,13 @@
 #include"./Simplex.h"
 #include"../core/File.hpp"
 using namespace std;
-shared_ptr<MovementGenerator> minoriko;
-shared_ptr<MovementGenerator> marisa;
+shared_ptr<MovementGenerator> player[4];
 template<class T>
 void readData(istream& stream,T& target)
 {
 	stream.read(reinterpret_cast<char*>(&target), sizeof(target));
 }
-GameInfo getStartState(string file)
+GameInfo getStartState(string file,int playerCount)
 {
 	GameInfo res;
 	ifstream in;
@@ -50,8 +49,8 @@ GameInfo getStartState(string file)
 	readData(in, bin);
 	char memberAvilible;
 	readData(in, memberAvilible);
-	assert((memberAvilible & 0x2) != 0);
-	res.playerCount = 2;
+	//assert((memberAvilible & 0x2) != 0);
+	res.playerCount = playerCount;
 	for (int i = 0; i < 4; ++i)
 	{
 		readData(in, res.player[i].position.x);
@@ -82,19 +81,30 @@ Game game;
 int main()
 {	
 	srand(time(0));
-	minoriko = make_shared<SimplexAI>();
-	marisa = minoriko;
+	player[0] = make_shared<SimplexAI>();
+	for (int i = 1; i <= 3; ++i)
+		player[i] = player[0];
 	cout << "请选择地图，输入地图编号即可" << endl;
 	auto maps=FileManager::getAllFiles("./map","akm");
 	for (int i=0;i<maps.size();++i)
 		cout <<i<<"." << maps[i] << endl;
 	int mapId;
 	cin >> mapId;
-	cout << "请选择你的阵营，0表示穰子，1表示魔理沙,2表示两个AI对战,实时观看对局,3表示两个AI对战输出到文件" << endl;
+	//game.newGame(getStartState(maps[6], 2));
+	//player[0]->init(game.getInfo());
+	//return 0;
+	cout << "请选择你的阵营，-1表示4人，0表示穰子，1表示魔理沙,2表示两个AI对战,实时观看对局,3表示两个AI对战输出到文件" << endl;
 	int side;
 	cin >> side;
-	if(side ==0)minoriko= make_shared<Human>();
-	else if(side==1)marisa = make_shared<Human>();
+	if(side ==0)player[MINORIKO]= make_shared<Human>();
+	else if(side==1)player[MARISA] = make_shared<Human>();
+	else if (side == -1)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			player[i] = make_shared<Human>();
+		}
+	}
 	double sumScore = 0, count = 0;
 	int n,roundCount=0;
 	cout << "请输入对局数量" << endl;
@@ -129,12 +139,14 @@ int main()
 	while (n--)
 	{
 		roundCount++;
-		game.newGame(getStartState(maps[mapId]));
+		game.newGame(getStartState(maps[mapId], side == -1 ? 4 : 2));
 		if (roundCount == 1)
 		{
 			cout << "预处理..." << endl;
-			minoriko->init(game.getInfo());
-			marisa->init(game.getInfo());
+			for (int i = 0; i < 4; ++i)
+			{
+				player[i]->init(game.getInfo());
+			}
 			cout << "预处理结束" << endl;
 			if (side == 3)
 				freopen("result.txt", "w", stdout);
@@ -145,16 +157,8 @@ int main()
 		while (!game.gameIsOver())
 		{
 			game.printInfo();
-			if (side == 0)
-			{
-				game.setMovement(marisa->generateMovement(game.getInfo(), MARISA),MARISA);
-				game.setMovement(minoriko->generateMovement(game.getInfo(), MINORIKO), MINORIKO);
-			}
-			else
-			{
-				game.setMovement(minoriko->generateMovement(game.getInfo(),MINORIKO), MINORIKO);
-				game.setMovement(marisa->generateMovement(game.getInfo(), MARISA), MARISA);
-			}
+			for (int i = 0; i < game.playerCount; ++i)
+				game.setMovement(player[i]->generateMovement(game.getInfo(), i), i);
 			if (side == 2)
 			{
 				ReadConsoleOutputCharacterA(hOutput[outputHandle], data, 120 * 30, coord, &bytes);
@@ -168,7 +172,7 @@ int main()
 				//system("cls");
 				//SetConsoleActiveScreenBuffer(hOutBuf);
 			}
-			if (side < 3)
+			if (side>=0&&side < 3)
 			{
 				system("cls");
 				outputHandle ^= 1;

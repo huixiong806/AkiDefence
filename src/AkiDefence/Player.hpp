@@ -6,7 +6,7 @@ enum PlayerName
 	MINORIKO=0,
 	MARISA=1,
 	SHIZUHA=2,
-	REIMU=3,
+	CIRNO=3,
 };
 struct Player
 {

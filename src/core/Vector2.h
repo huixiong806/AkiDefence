@@ -15,6 +15,11 @@ public:
 		return x == rhs.x&&y == rhs.y;
 	}
 	template <class U>
+	bool operator !=(const Vec2<U>& rhs)const
+	{
+		return x != rhs.x||y != rhs.y;
+	}
+	template <class U>
 	Vec2 operator+(const Vec2<U>& rhs)const
 	{
 		return Vec2(x + rhs.x, y + rhs.y);

@@ -19,7 +19,13 @@ void Human::init(GameInfo info)
 }
 Movement Human::generateMovement(GameInfo info,int who)
 {
-	cout << (who ? "雾雨魔理沙" : "秋穰子") << endl;
+	
+	cout << cns::playerNameFull[who] << endl;
+	if (info.player[who].hp <= 0)
+	{
+		cout << "体力用尽无法行动" << endl;
+		return Movement::createMovementStay();
+	}
 	vector<Movement> movement = getEffectiveMovement(info,who);
 	cout << "请选择一个操作:" << endl;
 	for (int i = 0; i < movement.size(); ++i)

@@ -1,15 +1,17 @@
 ﻿#pragma once
 #include"./MovementGenerator.h"
-#include"./Game.h"
+#include"Game.h"
 #include<iostream>
 #include<string>
 #include<Windows.h>
 #include<map>
+#include<unordered_map>
 using namespace std;
+class Game;
 //仅限二人版
 struct State
 {
-	Player player[2];
+	std::array<Player,2>player;
 	int roundLeft;
 	bool operator <(const State& rhs)const 
 	{
@@ -32,6 +34,7 @@ struct State
 		return player[MARISA].have < rhs.player[MARISA].have;
 	}
 };
+
 class SimplexAI:public MovementGenerator
 {
 private:
@@ -39,8 +42,9 @@ private:
 	double a[21][21];
 	map<State, double> avgScore;
 	GameInfo startState;
+	Game templateGame;
 	void printMovements(vector<Movement>& movements); 
-	double solve(State state);
+	double solve(State state)noexcept;
 	vector<Movement> getEffectiveMovement(const State& state,int side);
 	void pivot(int l, int e, int row, int col);
 	friend class game;
