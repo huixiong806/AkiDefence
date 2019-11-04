@@ -280,7 +280,7 @@ Movement SimplexAI::generateMovement(GameInfo info,int who)
 			templateGame.round = templateGame.roundLimit - state.roundLeft;
 			templateGame.setMovement(MovementMarisa[who?i:j], MARISA);
 			templateGame.setMovement(MovementMinoriko[who?j:i], MINORIKO);
-			templateGame.roundFinish();
+			templateGame.fastRoundFinishForTwoPlayer();
 			State nextState;
 			nextState.player[MARISA] = templateGame.getPlayerConst(MARISA);
 			nextState.player[MINORIKO] = templateGame.getPlayerConst(MINORIKO);

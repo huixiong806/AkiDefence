@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{F6F99408-AA2E-4363-8A82-AB5103F693D8}</ProjectGuid>
     <RootNamespace>AkiDefence</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -132,7 +132,6 @@
     <ClInclude Include="..\src\core\Api.h" />
     <ClInclude Include="..\src\core\Constant.h" />
     <ClInclude Include="..\src\core\File.hpp" />
-    <ClInclude Include="..\src\core\GameParameter.h" />
     <ClInclude Include="..\src\core\GirdMap.hpp" />
     <ClInclude Include="..\src\core\Json.hpp" />
     <ClInclude Include="..\src\core\Vector2.h" />

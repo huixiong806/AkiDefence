@@ -96,6 +96,7 @@ int main()
 	cout << "请选择你的阵营，-1表示4人，0表示穰子，1表示魔理沙,2表示两个AI对战,实时观看对局,3表示两个AI对战输出到文件" << endl;
 	int side;
 	cin >> side;
+	//player[MINORIKO] = make_shared<Human>();
 	if(side ==0)player[MINORIKO]= make_shared<Human>();
 	else if(side==1)player[MARISA] = make_shared<Human>();
 	else if (side == -1)

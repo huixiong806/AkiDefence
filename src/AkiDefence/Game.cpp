@@ -570,7 +570,7 @@ void Game::roundFinish()
 	{
 		if (player[p].hp <= 0)
 		{
-			player[p].position = Vec2i(-1, -1);
+			player[p].position = Vec2i(-9, -9);
 			player[p].hp = 0;
 		}
 	}
