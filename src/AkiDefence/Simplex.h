@@ -13,6 +13,10 @@ struct State
 {
 	std::array<Player,2>player;
 	int roundLeft;
+	bool operator ==(const State& rhs)const
+	{
+		return roundLeft == rhs.roundLeft && player[0] == rhs.player[0] && player[1] == rhs.player[1];
+	}
 	bool operator <(const State& rhs)const 
 	{
 		if (roundLeft < rhs.roundLeft)return true;
@@ -40,7 +44,9 @@ class SimplexAI:public MovementGenerator
 private:
 	int id[21 << 1];
 	double a[21][21];
-	map<State, double> avgScore;
+	uint64_t getHashForState(const State& s)const noexcept;
+	std::unordered_map<uint64_t, double> avgScore;
+	//std::vector<double>avgScore;
 	GameInfo startState;
 	Game templateGame;
 	void printMovements(vector<Movement>& movements); 

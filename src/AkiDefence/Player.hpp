@@ -13,4 +13,8 @@ struct Player
 	Vec2<int16_t> position;
 	int16_t hp;
 	int16_t have;//是否拥有红薯
+	bool operator ==(const Player& rhs)const
+	{
+		return hp == rhs.hp && have == rhs.have && position == rhs.position;
+	}
 };

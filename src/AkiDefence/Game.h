@@ -11,6 +11,18 @@ class Game:public GameInfo
 private:
 	bool gameOver;
 	std::array<Movement, 4> movement;
+	//吃红薯补血
+	void roundFinish_eatSweetPotato();
+	//更新位置(移动和碰撞)
+	void roundFinish_updatePosition();
+	//大树造成的血量变化以及对琪露诺攻击力的影响，返回值为对琪露诺攻击力的影响
+	int roundFinish_treeAffect();
+	//投掷红薯
+	void roundFinish_throwSweetPotato(int attackDamageChangeForCirno);
+	//陷阱的效果
+	void roundFinish_trapAffect();
+	//红薯的放下和拿起
+	void roundFinish_sweetPotatoTransport();
 public:
 	bool timeUp();
 	bool gameIsOver();

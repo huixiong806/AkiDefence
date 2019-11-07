@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include"./Player.hpp"
-#include"./Map.hpp"
+#include"Player.hpp"
+#include"Map.hpp"
 #include<string>
 #include<sstream>
 #include<array>

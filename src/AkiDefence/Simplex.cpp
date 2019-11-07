@@ -35,7 +35,7 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 		}
 		if (startState.map[newPos.x][newPos.y].type == GridType::Shrine)
 		{
-			if (state.player[side].have)
+			if (state.player[side].have&&side==MARISA)
 			{
 				movement.type = MovementType::Put;
 				res.push_back(movement);
@@ -79,26 +79,29 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			res.push_back(movement);
 		}
 		//投掷红薯
-		for (int i = 0; i <= 4; ++i)
+		if (state.player[side ^ 1].hp > 0)
 		{
-			Vec2i newPos = state.player[side ^ 1].position + cns::delta[i];
-			bool ok = false;
-			for (int j = 0; j < 4; ++j)
+			for (int i = 0; i <= 4; ++i)
 			{
-				for (int k = 1; k <= 2; ++k)
+				Vec2i newPos = state.player[side ^ 1].position + cns::delta[i];
+				bool ok = false;
+				for (int j = 0; j < 4; ++j)
 				{
-					Vec2i tarPos = state.player[side].position + cns::delta[j] * k;
-					if (newPos == tarPos)
+					for (int k = 1; k <= 2; ++k)
 					{
-						ok = true;
-						movement.type = MovementType::Throw;
-						movement.direction = j;
-						movement.distance = k;
-						res.push_back(movement);
-						break;
+						Vec2i tarPos = state.player[side].position + cns::delta[j] * k;
+						if (newPos == tarPos)
+						{
+							ok = true;
+							movement.type = MovementType::Throw;
+							movement.direction = j;
+							movement.distance = k;
+							res.push_back(movement);
+							break;
+						}
 					}
+					if (ok)break;
 				}
-				if (ok)break;
 			}
 		}
 	}
@@ -119,13 +122,15 @@ void SimplexAI::pivot(int l, int e, int row, int col)
 }
 double SimplexAI::solve(State state)noexcept
 {
-	auto mapNode = avgScore.find(state);
-	if (avgScore.find(state) != avgScore.end())return mapNode->second;
+	uint64_t hashForState=getHashForState(state);
+	auto mapNode = avgScore.find(hashForState);
+	if (mapNode != avgScore.end())return mapNode->second;
+	//if (avgScore[hashForState] > 0)return avgScore[hashForState];
 	static int c = 0;
 	c++;
-	if (c % 100000 == 0)cout << c << endl;
+	if (c % 500000 == 0)cout << c << endl;
 	if (state.player[MARISA].hp <= 0 || state.roundLeft <= 0)
-		return avgScore[state] = 1.0+(((double)rand() / 100000000000000.0)- (16383.0 / 100000000000000.0));
+		return avgScore[hashForState] = 1.0+((double)((double)(rand()%999)* (double)(rand()%999)-((double)999.0*999.0/2.0)) / 1e14);
 	double p[10][10];
 	memset(p, 0, sizeof(p));
 	vector<Movement>MovementMarisa = getEffectiveMovement(state,MARISA);
@@ -229,10 +234,11 @@ double SimplexAI::solve(State state)noexcept
 	double sum = 0.0;
 	for (i = 1; i <= row; ++i)sum += res[i];
 	sum = 1.0 / sum;
-	return avgScore[state] = sum;
+	return avgScore[hashForState]=sum;
 }
 void SimplexAI::init(GameInfo info)
 {
+	//avgScore.resize(10000000);
 	startState = info;
 	templateGame.newGame(startState);
 	State sta;
@@ -252,6 +258,24 @@ std::ostream& operator<<(std::ostream& os, Movement m)
 	if ((int)m.type == 1)os << " " << (int)m.distance;
 	return os;
 }
+uint64_t SimplexAI::getHashForState(const State& s)const noexcept
+{
+	uint64_t result = 0;
+	//result *= (startState.roundLimit + 1);
+	result += s.roundLeft;
+	for (int p = 0; p < 2; ++p)
+	{
+		result *= (startState.bucketVolume[p] + 1);
+		result += s.player[p].have;
+		result *= (startState.maxHp[p] + 1);
+		result += s.player[p].hp;
+		result *= startState.map.size().x;
+		result += s.player[p].position.x;
+		result *= startState.map.size().y;
+		result += s.player[p].position.y;
+	}
+	return result;
+}
 Movement SimplexAI::generateMovement(GameInfo info,int who)
 {
 	State state;
@@ -260,7 +284,7 @@ Movement SimplexAI::generateMovement(GameInfo info,int who)
 	state.roundLeft = info.roundLimit - info.round;
 	//printInfo(info);
 	cout << (who ? "雾雨魔理沙" : "秋穰子") << endl;
-	cout << "最优解平均得分:" << info.score + avgScore[state] - 1.0 << endl;
+	cout << "最优解平均得分:" << info.score + avgScore[getHashForState(state)] - 1.0 << endl;
 	//printf("最优解平均得分:%.4lf\n", info.score+avgScore[state]-1.0);
 	double p[10][10];
 	memset(p, 0, sizeof(p));
@@ -285,7 +309,8 @@ Movement SimplexAI::generateMovement(GameInfo info,int who)
 			nextState.player[MARISA] = templateGame.getPlayerConst(MARISA);
 			nextState.player[MINORIKO] = templateGame.getPlayerConst(MINORIKO);
 			nextState.roundLeft = templateGame.roundLimit - templateGame.round;
-			p[i][j] = avgScore[nextState] + templateGame.score;
+			uint64_t hashForNextState = getHashForState(nextState);
+			p[i][j] = avgScore[hashForNextState] + templateGame.score;
 			if (!who)p[i][j] = 9999.0 - p[i][j];
 		}
 	/*

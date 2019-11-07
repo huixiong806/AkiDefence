@@ -91,12 +91,12 @@ void Game::fastRoundFinishForTwoPlayer()noexcept
 	if (player[MINORIKO].hp <= 0)
 	{
 		movement[MINORIKO] = Movement::createMovementStay();
-		player[MINORIKO].position = Vec2i(-9, -9);
+		player[MINORIKO].position = cns::deathPlace;
 	}
 	//吃红薯补血
 	for (int p = 0; p<playerCount; ++p)
 	{
-		if (movement[p].type == MovementType::Eat&&player[p].have>0)
+		if (player[p].hp > 0 && movement[p].type == MovementType::Eat&&player[p].have>0)
 		{
 			player[p].hp += recoverHp;
 			if (player[p].hp > maxHp[p])
@@ -212,7 +212,7 @@ void Game::fastRoundFinishForTwoPlayer()noexcept
 	for (int p = 0; p < playerCount; ++p)
 		if (player[p].hp <= 0)
 		{
-			player[p].position = Vec2i(-9, -9);
+			player[p].position = cns::deathPlace;
 			player[p].hp = 0;
 		}
 	if (player[MARISA].hp <= 0)
@@ -221,20 +221,11 @@ void Game::fastRoundFinishForTwoPlayer()noexcept
 	if (round >= roundLimit)
 		gameOver = true;
 }
-void Game::roundFinish()
+void Game::roundFinish_eatSweetPotato()
 {
 	for (int p = 0; p < playerCount; ++p)
 	{
-		if (player[p].hp <= 0)
-		{
-			movement[p] = Movement::createMovementStay();
-			player[p].position = Vec2i(-1, -1);
-		}
-	}
-	//吃红薯补血
-	for (int p=0;p<playerCount;++p)
-	{
-		if (movement[p].type == MovementType::Eat)
+		if (player[p].hp>0&&movement[p].type == MovementType::Eat)
 		{
 			if ((p == SHIZUHA && map[player[p].position.x][player[p].position.y].type == GridType::Pile))
 			{
@@ -242,7 +233,7 @@ void Game::roundFinish()
 				if (player[p].hp > maxHp[p])
 					player[p].hp = maxHp[p];
 			}
-			else if(player[p].have>0)
+			else if (player[p].have > 0)
 			{
 				player[p].hp += recoverHp;
 				if (player[p].hp > maxHp[p])
@@ -251,6 +242,9 @@ void Game::roundFinish()
 			}
 		}
 	}
+}
+void Game::roundFinish_updatePosition()
+{
 	struct node
 	{
 		Vec2i pos;
@@ -267,7 +261,7 @@ void Game::roundFinish()
 		}
 		bool operator ==(const node& rhs)const
 		{
-			return pos == rhs.pos&&gap == rhs.gap;
+			return pos == rhs.pos && gap == rhs.gap;
 		}
 	};
 	std::vector<std::pair<node, int>> collisionTest;
@@ -292,15 +286,15 @@ void Game::roundFinish()
 		bool actionFailed = false;
 		if (cns::outofRange(newPos, map.size()))
 			actionFailed = true;
-		if (!actionFailed&&map[newPos.x][newPos.y].type == GridType::Wall)
+		if (!actionFailed && map[newPos.x][newPos.y].type == GridType::Wall)
 			actionFailed = true;
-		if (!actionFailed&&map[newPos.x][newPos.y].type == GridType::Tree)
+		if (!actionFailed && map[newPos.x][newPos.y].type == GridType::Tree)
 			actionFailed = true;
-		if (!actionFailed&&map[newPos.x][newPos.y].type == GridType::Shrine)
+		if (!actionFailed && map[newPos.x][newPos.y].type == GridType::Shrine)
 			actionFailed = true;
-		if (!actionFailed&&map[newPos.x][newPos.y].type == GridType::Pile&&p != SHIZUHA)
+		if (!actionFailed && map[newPos.x][newPos.y].type == GridType::Pile && p != SHIZUHA)
 			actionFailed = true;
-		bool someOneStandOnThere=false;
+		bool someOneStandOnThere = false;
 		for (int p = 0; p < playerCount; ++p)
 		{
 			if (player[p].hp > 0 && player[p].position == newPos)
@@ -313,14 +307,13 @@ void Game::roundFinish()
 		for (auto color : activeColor)
 			if (color == map[newPos.x][newPos.y].tag)
 				colorActived = true;
-		if (!actionFailed&&map[newPos.x][newPos.y].type == GridType::MoveableWall &&!someOneStandOnThere && colorActived)
+		if (!actionFailed && map[newPos.x][newPos.y].type == GridType::MoveableWall && !someOneStandOnThere && colorActived)
 			actionFailed = true;
 		if (actionFailed)
 		{
 			movement[p] = Movement::createMovementStay();
 		}
 	}
-	
 	Vec2i newPos[4] = { Vec2i(),Vec2i(),Vec2i(),Vec2i() };
 	//首先判断因为途中碰撞而移动失败的情况
 	for (int p = 0; p < playerCount; ++p)
@@ -340,7 +333,7 @@ void Game::roundFinish()
 				{
 					if (collisionTest[i].first == gap)
 					{
-						collisionTest[i].second |= (1<<p);
+						collisionTest[i].second |= (1 << p);
 						break;
 					}
 				}
@@ -355,7 +348,7 @@ void Game::roundFinish()
 		if (gap.second != cns::lowbit(gap.second))//x!=lowbit(x)等价于x里为1的bit不止一个
 			for (int p = 0; p < playerCount; ++p)
 			{
-				if ((1 << p)&gap.second)
+				if ((1 << p) & gap.second)
 				{
 					moveFailed[p] = true;
 					player[p].hp -= collisionDamage;
@@ -363,7 +356,7 @@ void Game::roundFinish()
 			}
 	collisionTest.clear();
 	//然后判断在格子上碰撞而移动失败的情况
-	while(true)
+	while (true)
 	{
 		bool noCollision = true;
 		//站的位置加入vector
@@ -371,10 +364,10 @@ void Game::roundFinish()
 		{
 			if (player[p].hp > 0)
 			{
-				if(movement[p].type == MovementType::Move && !moveFailed[p])
+				if (movement[p].type == MovementType::Move && !moveFailed[p])
 					newPos[p] = player[p].position + cns::delta[movement[p].direction];
 				else newPos[p] = player[p].position;
-				int i=0;
+				int i = 0;
 				for (i = 0; i < collisionTest.size(); ++i)
 				{
 					if (collisionTest[i].first == node(newPos[p], false))
@@ -395,7 +388,7 @@ void Game::roundFinish()
 			if (grid.second != cns::lowbit(grid.second))//x!=lowbit(x)等价于x里为1的bit不止一个
 			{
 				noCollision = false;
-				int size = 0,temp=grid.second;
+				int size = 0, temp = grid.second;
 				while (temp)
 				{
 					size++;
@@ -403,13 +396,13 @@ void Game::roundFinish()
 				}
 				for (int p = 0; p < playerCount; ++p)
 				{
-					if ((1 << p)&grid.second)
+					if ((1 << p) & grid.second)
 					{
 						moveFailed[p] = true;
-						player[p].hp -= collisionDamage*(size-1);
+						player[p].hp -= collisionDamage * (size - 1);
 					}
 				}
-			}	
+			}
 		}
 		collisionTest.clear();
 		if (noCollision)break;
@@ -419,66 +412,70 @@ void Game::roundFinish()
 		if (player[p].hp > 0)
 			if (movement[p].type == MovementType::Move && !moveFailed[p])
 				player[p].position = player[p].position + cns::delta[movement[p].direction];
-	//大树造成的血量改变和加倍减半影响
-	int throwEffectForCirno=0;//表示不变。-1表示减半，+1表示加倍。
+}
+int Game::roundFinish_treeAffect()
+{
+	int attackDamageChangeForCirno = 0;//表示不变。-1表示减半，+1表示加倍。
+	std::vector<Vec2i>redLeafTree;
+	if (playerCount >= 3)
 	{
-		std::vector<Vec2i>redLeaftree;
-		if (playerCount >= 3)
+		for (int i = 0; i < 4; ++i)
 		{
-			for (int i = 0; i < 4; ++i)
-			{
-				auto treePos = player[SHIZUHA].position + cns::delta[i];
-				if (!cns::outofRange(treePos, map.size()) && map[treePos.x][treePos.y].type == GridType::Tree\
-					&&map[treePos.x][treePos.y].tag!=0)
-					redLeaftree.push_back(treePos);
-			}
+			auto treePos = player[SHIZUHA].position + cns::delta[i];
+			if (!cns::outofRange(treePos, map.size()) && map[treePos.x][treePos.y].type == GridType::Tree\
+				&& map[treePos.x][treePos.y].tag != 0)
+				redLeafTree.push_back(treePos);
 		}
-		for (int p = 0; p < playerCount; ++p)
+	}
+	for (int p = 0; p < playerCount; ++p)
+	{
+		if (player[p].hp <= 0)continue;
+		for (int i = 0; i < 4; ++i)
 		{
-			if (player[p].hp <= 0)continue;
-			for (int i = 0; i < 4; ++i)
+			auto treePos = player[p].position + cns::delta[i];
+			if (!cns::outofRange(treePos, map.size()) && map[treePos.x][treePos.y].type == GridType::Tree\
+				&& map[treePos.x][treePos.y].tag != 0)
 			{
-				auto treePos = player[p].position + cns::delta[i];
-				if (!cns::outofRange(treePos, map.size()) && map[treePos.x][treePos.y].type == GridType::Tree\
-					&&map[treePos.x][treePos.y].tag != 0)
+				bool redLeaf = false;
+				for (auto item : redLeafTree)
+					if (treePos == item)
+					{
+						redLeaf = true;
+						break;
+					}
+				if (p == SHIZUHA)
 				{
-					bool redLeaf = false;
-					for (auto item : redLeaftree)
-						if (treePos == item)
-						{
-							redLeaf = true;
-							break;
-						}
-					if (p == SHIZUHA)
-					{
-						if (map[treePos.x][treePos.y].tag < 0)
-							player[p].hp -= map[treePos.x][treePos.y].tag;
-					}
-					else player[p].hp += redLeaf ? -map[treePos.x][treePos.y].tag : map[treePos.x][treePos.y].tag;
-					if (p == CIRNO&& !redLeaf)
-					{
-						if (map[treePos.x][treePos.y].tag < 0)
-							throwEffectForCirno -=1;
-						else throwEffectForCirno +=1;
-					}
-					if (player[p].hp > maxHp[p])
-						player[p].hp = maxHp[p];
+					if (map[treePos.x][treePos.y].tag < 0)
+						player[p].hp -= map[treePos.x][treePos.y].tag;
 				}
+				else player[p].hp += redLeaf ? -map[treePos.x][treePos.y].tag : map[treePos.x][treePos.y].tag;
+				if (p == CIRNO && !redLeaf)
+				{
+					if (map[treePos.x][treePos.y].tag < 0)
+						attackDamageChangeForCirno -= 1;
+					else attackDamageChangeForCirno += 1;
+				}
+				if (player[p].hp > maxHp[p])
+					player[p].hp = maxHp[p];
 			}
 		}
 	}
-	bool shizuhaInPile = (map[player[SHIZUHA].position.x][player[SHIZUHA].position.y].type == GridType::Pile);
+	return attackDamageChangeForCirno;
+}
+void Game::roundFinish_throwSweetPotato(int attackDamageChangeForCirno)
+{
 	//投掷红薯扣血和传递红薯
+	bool shizuhaInPile = (map[player[SHIZUHA].position.x][player[SHIZUHA].position.y].type == GridType::Pile);
 	//枚举投掷红薯的角色
 	for (int p = 0; p < playerCount; ++p)
 	{
-		if (movement[p].type == MovementType::Throw&& movement[p].distance > 0 && movement[p].distance <= 2 && (player[p].have > 0||(p==SHIZUHA&&shizuhaInPile)))
+		if (movement[p].type == MovementType::Throw && movement[p].distance > 0 && movement[p].distance <= 2 && (player[p].have > 0 || (p == SHIZUHA && shizuhaInPile)))
 		{
 			//静叶在红薯仓库中不消耗红薯。
-			if(!(p == SHIZUHA && shizuhaInPile))
+			if (!(p == SHIZUHA && shizuhaInPile))
 				player[p].have--;
 			Vec2i pos = player[p].position + cns::delta[movement[p].direction] * movement[p].distance;
-			if(p == SHIZUHA && shizuhaInPile)
+			if (p == SHIZUHA && shizuhaInPile)
 				pos = player[p].position + cns::delta[movement[p].direction];
 			//枚举目标角色
 			for (int t = 0; t < playerCount; ++t)
@@ -495,10 +492,10 @@ void Game::roundFinish()
 					{
 						if (p == CIRNO)
 						{
-							if(throwEffectForCirno>0)
-								player[t].hp -= (attackDamage << throwEffectForCirno);
-							else player[t].hp -= (attackDamage >> (-throwEffectForCirno));
-						}	
+							if (attackDamageChangeForCirno > 0)
+								player[t].hp -= (attackDamage << attackDamageChangeForCirno);
+							else player[t].hp -= (attackDamage >> (-attackDamageChangeForCirno));
+						}
 						else player[t].hp -= attackDamage;
 					}
 					break;
@@ -506,8 +503,11 @@ void Game::roundFinish()
 			}
 		}
 	}
+}
+void Game::roundFinish_trapAffect()
+{
 	//判断启动的机关
-	activeColor.clear();
+	std::vector<int>activeColor;
 	for (int p = 0; p < playerCount; ++p)
 	{
 		if (player[p].hp > 0)
@@ -526,12 +526,14 @@ void Game::roundFinish()
 		if (player[p].hp > 0 && map[player[p].position.x][player[p].position.y].type == GridType::Trap && colorActived)
 			player[p].hp -= trapDamage;
 	}
-	//红薯的放下和拿起
-	for (int p = 0; p < playerCount;++p)
+}
+void Game::roundFinish_sweetPotatoTransport()
+{
+	bool shizuhaInPile = (map[player[SHIZUHA].position.x][player[SHIZUHA].position.y].type == GridType::Pile);
+	for (int p = 0; p < playerCount; ++p)
 	{
 		if (player[p].hp <= 0)continue;
-
-		if (movement[p].type == MovementType::Get && player[p].have< bucketVolume[p])
+		if (movement[p].type == MovementType::Get && player[p].have < bucketVolume[p])
 		{
 			Vec2i pos = player[p].position + cns::delta[movement[p].direction];
 			if (!cns::outofRange(pos, map.size()))
@@ -541,13 +543,13 @@ void Game::roundFinish()
 					bool cirnoIsNear = false;
 					for (int i = 0; i < 4; ++i)
 					{
-						if (pos == player[CIRNO].position+cns::delta[i])
+						if (pos == player[CIRNO].position + cns::delta[i])
 						{
 							cirnoIsNear = true;
 							break;
 						}
 					}
-					if(p==CIRNO||!cirnoIsNear)
+					if (p == CIRNO || !cirnoIsNear)
 						player[p].have++;
 				}
 			}
@@ -559,21 +561,47 @@ void Game::roundFinish()
 			{
 				if (map[pos.x][pos.y].type == GridType::Shrine)
 				{
-					if(!(p == SHIZUHA && shizuhaInPile))
+					if (!(p == SHIZUHA && shizuhaInPile))
 						player[p].have--;
 					score++;
 				}
 			}
 		}
 	}
+}
+void Game::roundFinish()
+{
+	//处理体力为0的角色
 	for (int p = 0; p < playerCount; ++p)
 	{
 		if (player[p].hp <= 0)
 		{
-			player[p].position = Vec2i(-9, -9);
+			movement[p] = Movement::createMovementStay();
+			player[p].position = cns::deathPlace;
+		}
+	}
+	//吃红薯补充体力
+	roundFinish_eatSweetPotato();
+	//更新位置
+	roundFinish_updatePosition();
+	//大树造成的血量改变和加倍减半影响
+	int attackDamageChangeForCirno = roundFinish_treeAffect();
+	//投掷/传递红薯
+	roundFinish_throwSweetPotato(attackDamageChangeForCirno);
+	//陷阱
+	roundFinish_trapAffect();
+	//红薯的放下和拿起
+	roundFinish_sweetPotatoTransport();
+	//血存活状态更新
+	for (int p = 0; p < playerCount; ++p)
+	{
+		if (player[p].hp <= 0)
+		{
+			player[p].position = cns::deathPlace;
 			player[p].hp = 0;
 		}
 	}
+	//游戏结束判断以及时间更新
 	if (player[MARISA].hp <= 0)
 		gameOver = true;
 	round++;
