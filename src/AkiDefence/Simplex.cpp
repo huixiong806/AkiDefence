@@ -24,6 +24,8 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			continue;
 		if (startState.map[newPos.x][newPos.y].type == GridType::Wall)
 			continue;
+		if (startState.map[newPos.x][newPos.y].type == GridType::Tree)
+			continue;
 		if (startState.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
 			if (state.player[side].have<startState.bucketVolume[side])
@@ -105,6 +107,7 @@ std::vector<Movement>SimplexAI::getEffectiveMovement(const State& state,int side
 			}
 		}
 	}
+	//random_shuffle(res.begin(), res.end());
 	return res;
 }
 void SimplexAI::pivot(int l, int e, int row, int col)
@@ -314,13 +317,13 @@ Movement SimplexAI::generateMovement(GameInfo info,int who)
 			if (!who)p[i][j] = 9999.0 - p[i][j];
 		}
 	/*
-	for (int i = 0; i < szmarisa; ++i)
+	for (int i = 0; i < szminoriko; ++i)
 	{
-	for (int j = 0; j < szminoriko; ++j)
+	for (int j = 0; j < szmarisa; ++j)
 	{
-	printf("%lf ", p[i][j]);
+		cout << printMovement(MovementMinoriko[i]) << " " << printMovement(MovementMarisa[j]) << ":";
+		printf("%lf\n", 9999.0-p[i][j]-1);
 	}
-	cout << endl;
 	}*/
 	//单纯形 
 	memset(a, 0, sizeof(a));

@@ -541,12 +541,15 @@ void Game::roundFinish_sweetPotatoTransport()
 				if (map[pos.x][pos.y].type == GridType::Pile)
 				{
 					bool cirnoIsNear = false;
-					for (int i = 0; i < 4; ++i)
+					if (playerCount == 4)
 					{
-						if (pos == player[CIRNO].position + cns::delta[i])
+						for (int i = 0; i < 4; ++i)
 						{
-							cirnoIsNear = true;
-							break;
+							if (pos == player[CIRNO].position + cns::delta[i])
+							{
+								cirnoIsNear = true;
+								break;
+							}
 						}
 					}
 					if (p == CIRNO || !cirnoIsNear)

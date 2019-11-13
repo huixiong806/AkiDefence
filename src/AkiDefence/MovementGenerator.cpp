@@ -45,6 +45,8 @@ std::vector<Movement>MovementGenerator::getEffectiveMovement(GameInfo state,int 
 			continue;
 		if (state.map[newPos.x][newPos.y].type == GridType::Wall)
 			continue;
+		if (state.map[newPos.x][newPos.y].type == GridType::Tree)
+			continue;
 		if (state.map[newPos.x][newPos.y].type == GridType::Pile)
 		{
 			if (side == SHIZUHA)

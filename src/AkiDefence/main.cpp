@@ -93,7 +93,7 @@ int main()
 	//game.newGame(getStartState(maps[6], 2));
 	//player[0]->init(game.getInfo());
 	//return 0;
-	cout << "请选择你的阵营，-1表示4人，0表示穰子，1表示魔理沙,2表示两个AI对战,实时观看对局,3表示两个AI对战输出到文件" << endl;
+	cout << "请选择你的阵营，-1表示4人，0表示穰子，1表示魔理沙,2表示两个AI对战,实时观看对局,3表示两个AI对战输出到文件,4表示2人" << endl;
 	int side;
 	cin >> side;
 	//player[MINORIKO] = make_shared<Human>();
@@ -105,6 +105,11 @@ int main()
 		{
 			player[i] = make_shared<Human>();
 		}
+	}
+	else if (side == 4)
+	{
+		for (int i = 0; i < 2; ++i)
+			player[i] = make_shared<Human>();
 	}
 	double sumScore = 0, count = 0;
 	int n,roundCount=0;
@@ -144,7 +149,7 @@ int main()
 		if (roundCount == 1)
 		{
 			cout << "预处理..." << endl;
-			for (int i = 0; i < 4; ++i)
+			for (int i = 0; i < (side == -1 ? 4 : 2); ++i)
 			{
 				player[i]->init(game.getInfo());
 			}
@@ -158,7 +163,7 @@ int main()
 		while (!game.gameIsOver())
 		{
 			game.printInfo();
-			for (int i = 0; i < game.playerCount; ++i)
+			for (int i = 0; i <game.playerCount; ++i)
 				game.setMovement(player[i]->generateMovement(game.getInfo(), i), i);
 			if (side == 2)
 			{
@@ -167,7 +172,7 @@ int main()
 				//设置新的缓冲区为活动显示缓冲
 				SetConsoleActiveScreenBuffer(hOutput[outputHandle^1]);
 				
-				Sleep(1000);
+				Sleep(2000);
 				
 				//SetConsoleActiveScreenBuffer(hOutput);
 				//system("cls");
